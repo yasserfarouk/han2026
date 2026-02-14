@@ -1,1 +1,2 @@
-negmas>=0.15.0
+negmas>=0.15.1
+negmas-llm>=0.4.0

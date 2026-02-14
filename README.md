@@ -29,15 +29,20 @@ A sample agent for the HAN 2026 competition built with [NegMAS](https://github.c
   - [Manual Renaming (Any Editor)](#manual-renaming-any-editor)
 - [3. Implementing Your Agent](#3-implementing-your-agent)
   - [Example Agents](#example-agents)
-- [4. Usage from the command line](#4-usage-from-the-command-line)
+- [4. Customizing Your Agent](#4-customizing-your-agent)
+  - [Modifying Prompts](#modifying-prompts)
+  - [Using Tags in Prompts](#using-tags-in-prompts)
+  - [Customizing Example Agents](#customizing-example-agents)
+- [5. Usage from the command line](#5-usage-from-the-command-line)
   - [Running a single negotiation](#running-a-single-negotiation)
   - [Running a tournament](#running-a-tournament)
   - [Viewing Development and Submission Info](#viewing-development-and-submission-info)
-- [5. Development Workflows](#5-development-workflows)
+  - [Viewing Available Prompt Tags](#viewing-available-prompt-tags)
+- [6. Development Workflows](#6-development-workflows)
   - [VS Code](#vs-code-1)
   - [Vim/Neovim](#vimneovim)
   - [PyCharm / Other IDEs](#pycharm--other-ides)
-- [6. Submission](#6-submission)
+- [7. Submission](#7-submission)
 
 ## Project Structure
 
@@ -238,7 +243,264 @@ python -c "from negmas.registry import component_registry as CR; print(CR.keys()
 > You can base your agent on any supported NegMAS negotiator (For some examples check [this](https://negmas.readthedocs.io/en/latest/negotiators.html) list. Other agents are available through [negmas-negobog](https://autoneg.github.io/negmas-negolog/) and [negmas-geniusweb-bridge](https://autoneg.github.io/negmas-geniusweb-bridge/)). You can explore available negotiators, their behavior, etc in the [NegMAS GUI](https://autoneg.github.io/negmas-app/).
 
 
-## 4. Usage from the command line
+## 4. Customizing Your Agent
+
+### Modifying Prompts
+
+Your agent uses several prompts defined as module-level variables at the top of your agent file. You can customize these to change how the LLM thinks about and approaches negotiation.
+
+#### Available Prompt Variables
+
+In your agent file (e.g., `mynegotiator.py`), you'll find these module-level prompt variables:
+
+- **`SYSTEM_PROMPT`** - Sets the overall behavior, personality, and role of the LLM negotiator
+- **`PREFERENCES_PROMPT`** - Sent when preferences are first set at the start of negotiation
+- **`PREFERENCES_CHANGED_PROMPT`** - Sent when preferences change during negotiation (rare)
+- **`NEGOTIATION_START_PROMPT`** - Sent when negotiation begins, explains the response format
+- **`ROUND_PROMPT`** - Sent each negotiation round with current state information
+
+Each prompt can include **tags** (see [Using Tags in Prompts](#using-tags-in-prompts)) that get dynamically replaced with negotiation context.
+
+#### Example: Creating an Aggressive Negotiator
+
+To make your agent more aggressive and less willing to compromise:
+
+```python
+SYSTEM_PROMPT = """
+You are a TOUGH negotiator who drives HARD bargains. Your primary goal
+is to maximize your own utility, and you should be very reluctant to
+make concessions. Only accept offers that give you excellent utility.
+
+Be assertive in your text messages to the opponent. Make it clear you
+expect favorable terms. Start with your best possible outcomes and
+concede slowly and reluctantly only when time is running out.
+
+Always respond in the exact JSON format requested.
+"""
+```
+
+#### Example: Creating a Cooperative Negotiator
+
+To make your agent more cooperative and focused on mutual benefit:
+
+```python
+SYSTEM_PROMPT = """
+You are a COOPERATIVE negotiator focused on finding win-win solutions.
+While you aim for good utility, you also value reaching agreements that
+benefit both parties. Analyze the opponent's preferences when available
+and look for outcomes that provide high joint utility.
+
+Be friendly and collaborative in your text messages. Explain your
+reasoning and show willingness to compromise when it makes sense.
+
+Always respond in the exact JSON format requested.
+"""
+```
+
+#### Example: Adding Opponent Modeling to Negotiation Start
+
+You can enhance the `NEGOTIATION_START_PROMPT` to encourage the LLM to model the opponent:
+
+```python
+NEGOTIATION_START_PROMPT = """
+# Negotiation Started
+
+The negotiation has now started. For each round, you should:
+
+1. **Model your opponent**: Track which outcomes they offer and accept
+   to infer their preferences. Use {{history:text(k=5)}} to see recent moves.
+2. **Analyze offers**: When you receive an offer, check its utility for you
+   using {{utility:text(outcome={{opponent-last-offer}})}}
+3. **Make strategic decisions**: Choose to ACCEPT, REJECT (with counter-offer), or END
+4. **Communicate effectively**: Provide persuasive text that advances your position
+
+Respond in this JSON format for each decision:
+```json
+{
+    "response_type": "accept" | "reject" | "end" | "wait",
+    "outcome": [value1, value2, ...] | null,
+    "text": "optional persuasive message to send to your opponent",
+    "reasoning": "brief explanation of your decision (not sent to opponent)"
+}
+```
+
+Ready to begin!
+"""
+```
+
+### Using Tags in Prompts
+
+Tags allow you to dynamically insert negotiation context into prompts. They are written as `{{tag-name}}` or `{{tag-name:format(param=value)}}`.
+
+#### Common Tags and Examples
+
+To see all available tags, run:
+```bash
+han2026 tags
+```
+
+Here are some frequently used tags:
+
+**Outcome Space Tags:**
+- `{{outcome-space:json}}` - Get the full outcome space in JSON format
+- `{{outcome-space:text}}` - Get human-readable outcome space description
+- `{{n-outcomes}}` - Number of possible outcomes
+
+**Utility Tags:**
+- `{{utility:text(outcome={{opponent-last-offer}})}}` - Compute utility of opponent's last offer
+- `{{utility-function:text}}` - Your utility function description
+- `{{reserved-value}}` - Your walk-away utility value
+- `{{opponent-utility-function:text}}` - Opponent's utility (if available)
+
+**History Tags:**
+- `{{history:text}}` - Full negotiation history
+- `{{history:text(k=5)}}` - Last 5 negotiation steps
+- `{{opponent-last-offer}}` - Opponent's most recent offer
+- `{{my-last-offer}}` - Your most recent offer
+
+**Context Tags:**
+- `{{nmi:text}}` - Negotiation mechanism information (time limit, steps, etc.)
+- `{{step}}` - Current negotiation step number
+- `{{relative-time}}` - How much time has elapsed (0.0 to 1.0)
+- `{{running}}` - Whether negotiation is still active
+
+#### Example: Rich Round Prompt with Multiple Tags
+
+```python
+ROUND_PROMPT = """
+# Round {{step}}
+
+**Progress**: Step {{step}} | Time: {{relative-time:.1%}} | Running: {{running}}
+
+## Current Situation
+{{history:text(k=3)}}
+
+## Opponent's Last Offer
+{{opponent-last-offer}}
+
+**Utility for you**: {{utility:text(outcome={{opponent-last-offer}})}}
+
+## Your Last Offer
+{{my-last-offer}}
+
+## Analysis
+- Your reserved value (walk-away point): {{reserved-value}}
+- Total possible outcomes: {{n-outcomes}}
+
+What is your decision? Remember to maximize your utility while considering
+the time pressure and opponent's apparent preferences.
+
+Respond with JSON.
+"""
+```
+
+### Customizing Example Agents
+
+#### Adapter Example (`examples/adapter.py`)
+
+The adapter wraps a traditional negotiator with LLM capabilities. You can customize:
+
+**1. Change the Base Negotiator:**
+
+Replace `BoulwareTBNegotiator` (tough negotiator) with a different strategy:
+
+```python
+from negmas.sao import ConcederTBNegotiator  # More willing to concede
+
+class CooperativeLLMNegotiator(LLMMetaNegotiator):
+    def __init__(self, **kwargs):
+        super().__init__(
+            negotiator=ConcederTBNegotiator(),  # Changed from BoulwareTBNegotiator
+            system_prompt=SYSTEM_PROMPT,
+            **kwargs
+        )
+```
+
+**2. Modify the System Prompt:**
+
+The `SYSTEM_PROMPT` in `adapter.py` controls how the LLM generates text. Customize it to change the communication style:
+
+```python
+SYSTEM_PROMPT = """
+You are assisting in automated negotiation by generating natural language
+messages. Be BRIEF and DIRECT - keep messages under 20 words when possible.
+
+Available information:
+- {{outcome-space:text}}
+- {{history:text(k=3)}}
+
+Generate concise, persuasive text based on the negotiation context.
+"""
+```
+
+**3. Adjust LLM Parameters:**
+
+```python
+class MyCustomAdapter(LLMMetaNegotiator):
+    def __init__(self, **kwargs):
+        super().__init__(
+            negotiator=BoulwareTBNegotiator(),
+            system_prompt=SYSTEM_PROMPT,
+            model="llama3.2",           # Different model
+            temperature=0.9,            # More creative responses
+            max_tokens=512,             # Shorter responses
+            **kwargs
+        )
+```
+
+#### Non-LLM Examples (`examples/nollm.py`)
+
+**BOANeg** uses modular components you can swap:
+
+```python
+from negmas.sao import AspirationNegotiator, GaussianAcceptanceStrategy
+
+# More flexible bidding strategy
+bidding_strategy = AspirationNegotiator(max_aspiration=0.9, aspiration_type='linear')
+
+# Different acceptance strategy
+acceptance_strategy = GaussianAcceptanceStrategy()
+
+class MyBOANeg(SAONegotiator):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_capabilities(
+            offering=bidding_strategy,
+            acceptance=acceptance_strategy,
+            opponent_model=GSmithFrequencyModel()
+        )
+```
+
+**SimpleNeg** can be modified to be more strategic:
+
+```python
+def respond(state, offer):
+    my_utility = self.ufun(offer) if offer else 0.0
+    
+    # More sophisticated acceptance threshold
+    time_pressure = state.relative_time
+    threshold = 0.7 + (0.2 * time_pressure)  # Accept lower offers as time runs out
+    
+    if my_utility >= threshold:
+        return SAOResponse(ResponseType.ACCEPT_OFFER, offer)
+    
+    # Find best counter-offer
+    outcomes = self.nmi.outcome_space.enumerate()
+    best = max(outcomes, key=lambda o: self.ufun(o))
+    
+    return SAOResponse(
+        ResponseType.REJECT_OFFER,
+        best,
+        f"I propose this alternative (utility for me: {self.ufun(best):.2f})"
+    )
+```
+
+For detailed tag documentation, use:
+```bash
+han2026 tags <tag-name>
+```
+
+## 5. Usage from the command line
 
 > **Note:** All commands below work on Linux, macOS, and Windows. On Windows, use Command Prompt, PowerShell, or Windows Terminal.
 
@@ -330,7 +592,24 @@ To view development workflows and submission instructions in your terminal:
 han2026 info
 ```
 
-## 5. Development Workflows
+### Viewing Available Prompt Tags
+
+To see all available tags for customizing LLM prompts:
+
+```bash
+han2026 tags
+```
+
+To get detailed documentation for a specific tag:
+
+```bash
+han2026 tags utility
+han2026 tags outcome-space
+```
+
+Tags can be used in custom prompts to dynamically insert negotiation context such as outcome space, utilities, negotiation history, and opponent information.
+
+## 6. Development Workflows
 
 ### VS Code
 
@@ -368,7 +647,7 @@ han2026 info
    pytest
    ```
 
-## 6. Submission
+## 7. Submission
 
 <!-- SUBMISSION_START -->
 To submit your agent to the HAN 2026 competition:
