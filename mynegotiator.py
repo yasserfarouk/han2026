@@ -1,5 +1,5 @@
-from examples.boa import BOANeg
+from examples.simple import SimpleNegotiator
 
 
-class MyNegotiator(BOANeg):
+class MyNegotiator(SimpleNegotiator):
     """Implement Your negotiator here"""
