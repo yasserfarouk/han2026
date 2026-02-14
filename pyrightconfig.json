@@ -1,9 +1,0 @@
-{
-    "venvPath": "/Users/yasser/myvenvs",
-    "venv": "negmas",
-    "ignore": [
-        "negmas/scripts/vendor/quick",
-        "negmas/concurrent",
-        "negmas/elicitation"
-    ]
-}

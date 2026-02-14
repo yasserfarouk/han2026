@@ -1,13 +1,14 @@
-# ANL 2026 Sample Agent
+# HAN 2026 Sample Agent
 
-A sample agent for the ANL 2026 competition built with [NegMAS](https://github.com/yasserfarouk/negmas).
+A sample agent for the HAN 2026 competition built with [NegMAS](https://github.com/yasserfarouk/negmas) and [NegMAS-LLM](https://github.com/autoneg/negmas-llm). You can test your agent using the [HANI](https://github.com/autoneg/hani) interface.
 
 ## Quick Start
 
 1. **Install dependencies:** `uv sync` ([details](#installation))
 2. **Rename your agent:** Change `mynegotiator.py` → `your_agent.py` and `MyNegotiator` → `YourAgent` ([details](#getting-started-rename-your-agent))
 3. **Implement your agent:** Edit your renamed file ([details](#implementing-your-agent), [examples](#example-agents))
-4. **Test locally:** `uv run anl2026 run` and `uv run anl2026 tournament` ([details](#usage-from-the-command-line))
+4. **Test locally:** against LLM negotiators `han2026 run` and `han2026 tournament` ([details](#usage-from-the-command-line))
+5. **Test locally:** against human negotiators `hani --dev`.
 5. **Submit:** Zip and upload to the competition site ([details](#submission))
 
 > [!NOTE]
@@ -43,9 +44,8 @@ A sample agent for the ANL 2026 competition built with [NegMAS](https://github.c
 ```
 .
 ├── examples/              # Example negotiator implementations
-│   ├── boa.py             # BOA (Bidding, Opponent modeling, Acceptance) agent
-│   ├── map.py             # MAP (Maximum Aspiration Policy) agent
-│   └── simple.py          # Simple negotiator example
+│   ├── adapter.py         # LLM-based adapter that wraps existing negotiators
+│   └── nollm.py           # Non-LLM negotiators (BOA and simple SAO)
 ├── scenarios/             # Negotiation scenarios
 │   ├── Amsterdam/
 │   ├── Camera/
@@ -175,7 +175,7 @@ Before you start developing, rename the agent module and class to match your sub
 
 4. **Verify the changes:**
    ```bash
-   uv run anl2026 run
+   han2026 run
    ```
 
 ## 3. Implementing Your Agent
@@ -184,52 +184,54 @@ Your agent is implemented in your renamed module file. See the example agents be
 
 ### Example Agents
 
-The `examples/` folder contains three example negotiator implementations that demonstrate different approaches to building agents:
+The `examples/` folder contains example negotiator implementations that demonstrate different approaches to building agents:
 
-#### BOANeg (`examples/boa.py`)
+#### BolwareBasedLLMNegotiator (`examples/adapter.py`)
 
-A modular agent using the **BOA (Bidding, Opponent modeling, Acceptance)** architecture. This architecture separates the negotiation strategy into three independent components:
+An **LLM-based adapter** that wraps existing negotiators to add natural language communication capabilities. This example demonstrates how to use `LLMMetaNegotiator` to enhance any traditional negotiator with LLM-powered decision making:
+
+- **Base Negotiator:** Uses `BoulwareTBNegotiator` as the underlying strategy (a time-based tough negotiator)
+- **LLM Enhancement:** The LLM learns from and adapts the base negotiator's behavior
+- **Hybrid Approach:** Combines the reliability of traditional strategies with LLM flexibility
+
+This is useful when you want to leverage proven negotiation strategies while adding natural language reasoning.
+
+You can test it with:
+
+```bash
+han2026 run --opponent examples.adapter.BolwareBasedLLMNegotiator
+```
+
+#### Non-LLM Negotiators (`examples/nollm.py`)
+
+This file contains two traditional (non-LLM) negotiators that don't require an LLM to run:
+
+**BOANeg** - A modular agent using the **BOA (Bidding, Opponent modeling, Acceptance)** architecture:
 
 - **Bidding Strategy:** Uses `TimeBasedOfferingPolicy` - makes concessions based on remaining time
 - **Opponent Model:** Uses `GSmithFrequencyModel` - learns opponent preferences from their offers
 - **Acceptance Strategy:** Uses `ACNext` - accepts if the offer is better than what we would offer next
 
-You can test it with:
+```bash
+han2026 run --opponent examples.nollm.BOANeg
+```
+
+**SimpleNeg** - A minimal agent implemented in a single function, demonstrating the basics:
+
+- **Acceptance:** Accepts any offer with utility > 0.8
+- **Offering:** Always proposes the best outcome for itself
+- **Natural Text:** Includes simple response messages ("Thank you for this great offer", etc.)
+
+This is a good starting point to understand the negotiation API before moving to more complex architectures.
 
 ```bash
-uv run anl2026 run --opponent examples.boa.BOANeg
+han2026 run --opponent examples.nollm.SimpleNeg
 ```
 
 You can see all available components from negmas using:
 
 ```bash
 python -c "from negmas.registry import component_registry as CR; print(CR.keys());"
-```
-
-#### MAPNeg (`examples/map.py`)
-
-A **MAP (Maximum Aspiration Policy)** agent that also uses modular components but with a different base architecture allowing for multiple opponent models at once and other arbitrary components:
-
-- Uses the same time-based offering and acceptance strategies as BOANeg
-- Supports multiple opponent models (configured with `GSmithFrequencyModel`)
-- Processes acceptance before offering (`acceptance_first=True`)
-
-```bash
-uv run anl2026 run --opponent examples.map.MAPNeg
-```
-
-#### SimpleNegotiator (`examples/simple.py`)
-
-A minimal agent implemented in a single function, demonstrating the basics of negotiation:
-
-- **Opponent Model:** Assumes the opponent's utility is the inverse of ours
-- **Acceptance:** Accepts any offer with utility ≥ 0.8
-- **Offering:** Proposes random outcomes with utility between 0.5 and 1.0
-
-This is a good starting point to understand the negotiation API before moving to more complex architectures.
-
-```bash
-uv run anl2026 run --opponent examples.simple.SimpleNegotiator
 ```
 
 > [!NOTE]
@@ -245,13 +247,13 @@ uv run anl2026 run --opponent examples.simple.SimpleNegotiator
 To run a single negotiation:
 
 ```bash
-uv run anl2026 run
+han2026 run
 ```
 
 This will run your agent against a random opponent on a random scenario and report:
 - **Advantage:** utility - reserved-value
 - **Deception:** How well you confuse your opponent's model of you
-- **Score:** The final ANL 2026 score
+- **Score:** The final HAN 2026 score
 
 #### Run command options
 
@@ -267,20 +269,20 @@ This will run your agent against a random opponent on a random scenario and repo
 Examples:
 ```bash
 # Run with a specific scenario
-uv run anl2026 run --scenario Camera
+han2026 run --scenario Camera
 
 # Run with a generated scenario
-uv run anl2026 run --generate-scenario
+han2026 run --generate-scenario
 
 # Run against a specific opponent (Any negmas/genius agent can be used this way)
-uv run anl2026 run --opponent negmas.sao.BoulwareTBNegotiator
+han2026 run --opponent negmas.sao.BoulwareTBNegotiator
 
 
 # Run against a specific opponent (Any example can be used this way)
-uv run anl2026 run --opponent examples.boa.BOANeg
+han2026 run --opponent examples.boa.BOANeg
 
 # Run with verbose output and no plot
-uv run anl2026 run --verbose --no-plot
+han2026 run --verbose --no-plot
 ```
 
 ### Running a tournament
@@ -288,7 +290,7 @@ uv run anl2026 run --verbose --no-plot
 To run a complete tournament with all default competitors:
 
 ```bash
-uv run anl2026 tournament
+han2026 tournament
 ```
 
 This will run your agent against multiple opponents across all scenarios and report the final scores.
@@ -308,16 +310,16 @@ This will run your agent against multiple opponents across all scenarios and rep
 Examples:
 ```bash
 # Run tournament on specific scenarios
-uv run anl2026 tournament --scenario Camera --scenario Car
+han2026 tournament --scenario Camera --scenario Car
 
 # Run tournament with generated scenarios
-uv run anl2026 tournament --generate-scenarios 10
+han2026 tournament --generate-scenarios 10
 
 # Run tournament in parallel with verbose output
-uv run anl2026 tournament --parallel --verbosity 1
+han2026 tournament --parallel --verbosity 1
 
 # Run tournament with custom competitors
-uv run anl2026 tournament --competitor mynegotiator.MyNegotiator --competitor examples.boa.BOANeg
+han2026 tournament --competitor mynegotiator.MyNegotiator --competitor examples.boa.BOANeg
 ```
 
 ### Viewing Development and Submission Info
@@ -325,7 +327,7 @@ uv run anl2026 tournament --competitor mynegotiator.MyNegotiator --competitor ex
 To view development workflows and submission instructions in your terminal:
 
 ```bash
-uv run anl2026 info
+han2026 info
 ```
 
 ## 5. Development Workflows
@@ -339,8 +341,8 @@ uv run anl2026 info
    - Type "Python: Select Interpreter"
    - Choose the interpreter from `.venv/bin/python` (Linux/macOS) or `.venv\Scripts\python.exe` (Windows)
 4. Edit your agent file (renamed from `mynegotiator.py`) to implement your agent
-5. Run tests with `uv run pytest` in the integrated terminal
-6. Run your agent with `uv run anl2026 run`
+5. Run tests with `pytest` in the integrated terminal
+6. Run your agent with `han2026 run`
 
 ### Vim/Neovim
 
@@ -349,8 +351,8 @@ uv run anl2026 info
 3. Edit your agent file (renamed from `mynegotiator.py`) to implement your agent
 4. Run commands from the terminal:
    ```bash
-   uv run anl2026 run
-   uv run pytest
+   han2026 run
+   pytest
    ```
 
 ### PyCharm / Other IDEs
@@ -362,28 +364,28 @@ uv run anl2026 info
 3. Edit your agent file (renamed from `mynegotiator.py`) to implement your agent
 4. Use the built-in terminal to run:
    ```bash
-   uv run anl2026 run
-   uv run pytest
+   han2026 run
+   pytest
    ```
 
 ## 6. Submission
 
 <!-- SUBMISSION_START -->
-To submit your agent to the ANL 2026 competition:
+To submit your agent to the HAN 2026 competition:
 
 1. Ensure your renamed your agent and followed the instruction for development and have a runnable agent. To test that you have a runnable agent, use:
 
   ```bash
-  anl2026 run
+  han2026 run
   ```
 
 and
 
   ```bash
-  anl2026 tournament
+  han2026 tournament
   ```
 
-2. Test your agent locally using `uv run anl2026 run` and `uv run anl2026 tournament`
+2. Test your agent locally using `han2026 run` and `han2026 tournament`
 3. Add any extra dependencies you need for your agent in requirements.txt. Try to always use the most recent version of each library to maximize the re-usability of your agent in the future.
 4. Zip the code for your agent (no need to include examples, scenarios, report, tests, README.md, main.py, pyproject.toml, uv.lock) in your submission:
 
@@ -416,7 +418,7 @@ and
    tar -a -cf submission.zip --exclude=examples --exclude=scenarios --exclude=report --exclude=tests --exclude=README.md --exclude=main.py --exclude=pyproject.toml --exclude=uv.lock --exclude=.git --exclude=.venv --exclude=__pycache__ --exclude=.ruff_cache --exclude=.pytest_cache .
    ```
 
-5. Submit your agent following the competition guidelines at [ANL 2026 Competition Page](https://anac.cs.brown.edu/anl)
+5. Submit your agent following the competition guidelines at [HAN 2026 Competition Page](https://anac.cs.brown.edu/han)
 
    5.1. [First time] Register for the competition [here](https://anac.cs.brown.edu/register)
 
@@ -424,7 +426,7 @@ and
 
    5.3. Go to your home page "Your Home" and choose "Submissions"
 
-   5.4. Under "ANL", click "New Agent" and fill the form. We will assume that your main agent class is called `AwsomeNegotiator` implemented in a file called `awsome.py` at the root of this folder:
+   5.4. Under "HAN", click "New Agent" and fill the form. We will assume that your main agent class is called `AwsomeNegotiator` implemented in a file called `awsome.py` at the root of this folder:
 
      - Agent Name: Awsome Negotiator
      - Agent Alias: Awsome Negotiator

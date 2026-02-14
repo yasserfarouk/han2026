@@ -1,5 +1,7 @@
 import random
 import sys
+import tempfile
+import webbrowser
 from pathlib import Path
 
 # Add project root to sys.path so local modules like 'examples' can be imported
@@ -11,9 +13,11 @@ from negmas.preferences import compare_ufuns
 from negmas.preferences.generators import generate_multi_issue_ufuns
 from negmas.sao import SAOMechanism
 from negmas.tournaments.neg.simple import cartesian_tournament
+from negmas_llm.tags import get_available_tags, get_tag_documentation
 from rich import print
 from rich.console import Console
 from rich.markdown import Markdown
+from rich.table import Table
 import typer
 from typing import Annotated
 
@@ -143,6 +147,28 @@ def run(
             rich_help_panel="Output",
         ),
     ] = True,
+    show_trace: Annotated[
+        bool,
+        typer.Option(
+            help="Display full trace as a formatted table in terminal.",
+            rich_help_panel="Output",
+        ),
+    ] = False,
+    export_trace: Annotated[
+        str | None,
+        typer.Option(
+            help="Export full trace to CSV file (provide file path).",
+            rich_help_panel="Output",
+        ),
+    ] = None,
+    trace_browser: Annotated[
+        bool,
+        typer.Option(
+            "--trace-browser/--no-trace-browser",
+            help="Open full trace in browser as an interactive table.",
+            rich_help_panel="Output",
+        ),
+    ] = True,
 ):
     """Run a single negotiation against an opponent."""
     if generate:
@@ -167,14 +193,7 @@ def run(
         )
         assert s is not None, f"Could not load scenario {scenario}"
     if opponent is None:
-        opponent = random.choice(
-            (
-                "negmas.sao.BoulwareTBNegotiator",
-                "examples.boa.BOANeg",
-                "examples.map.MAPNeg",
-                "examples.simple.SimpleNegotiator",
-            )
-        )
+        opponent = "negmas.sao.LinearTBNegotiator"
         print(
             f"Will use opponent [green]{opponent}[/green] (to select a specific opponent pass --opponent=<opponent_class>)"
         )
@@ -185,8 +204,102 @@ def run(
     )
     m.add(MyNegotiator(ufun=s.ufuns[1], id="MyNegotiator", name="MyNegotiator"))
     m.run()
+
+    # Get the trace dataframe
+    trace_df = m.full_trace_with_utils_df()
+
+    # Handle trace display options
     if verbose:
-        print(m.full_trace_with_utils_df())
+        print(trace_df)
+
+    if show_trace:
+        # Display trace as a rich table in terminal
+        console = Console()
+        table = Table(title="Negotiation Trace", show_lines=True)
+
+        # Add columns
+        for col in trace_df.columns:
+            table.add_column(str(col), style="cyan")
+
+        # Add rows
+        for _, row in trace_df.iterrows():
+            table.add_row(*[str(val) for val in row])
+
+        console.print(table)
+
+    if export_trace:
+        # Export trace to CSV
+        export_path = Path(export_trace)
+        trace_df.to_csv(export_path, index=False)
+        print(f"[green]Trace exported to {export_path}[/green]")
+
+    if trace_browser:
+        # Create an HTML table and open in browser
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Negotiation Trace</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }}
+        h1 {{
+            color: #333;
+            text-align: center;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }}
+        th {{
+            background-color: #2c3e50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }}
+        td {{
+            padding: 10px 12px;
+            border-bottom: 1px solid #ddd;
+        }}
+        tr:hover {{
+            background-color: #f8f9fa;
+        }}
+        tr:nth-child(even) {{
+            background-color: #fafafa;
+        }}
+        .container {{
+            max-width: 100%;
+            overflow-x: auto;
+        }}
+    </style>
+</head>
+<body>
+    <h1>Negotiation Trace</h1>
+    <div class="container">
+        {trace_df.to_html(index=False, classes="trace-table", border=0)}
+    </div>
+</body>
+</html>
+"""
+        # Create a temporary HTML file
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False) as f:
+            f.write(html_content)
+            temp_path = f.name
+
+        # Open in browser
+        webbrowser.open(f"file://{temp_path}")
+        print(f"[green]Trace opened in browser[/green]")
+
     if plot:
         m.plot()
     print(f"Agreement: {m.agreement}")
@@ -194,11 +307,11 @@ def run(
 
 
 DEFAULT_COMPETITORS = [
-    "negmas.sao.BoulwareTBNegotiator",
+    "negmas_llm.meta.LLMBoulwareTBNegotiator",
     "mynegotiator.MyNegotiator",
-    "examples.simple.SimpleNegotiator",
-    "examples.map.MAPNeg",
-    "examples.boa.BOANeg",
+    "examples.adapter.BolwareBasedLLMNegotiator",
+    "examples.nollm.SimpleNeg",
+    "examples.nollm.BOANeg",
 ]
 
 
@@ -353,6 +466,110 @@ def info():
             section = content[start:end].strip()
             console.print(Markdown(section))
             console.print()
+
+
+@app.command()
+def tags(
+    tag_name: Annotated[
+        str | None,
+        typer.Argument(
+            help="Specific tag to get documentation for. If not provided, shows all available tags.",
+        ),
+    ] = None,
+):
+    """Show available prompt tags for customizing LLM negotiator prompts.
+
+    Tags can be used in custom prompts to dynamically insert negotiation context.
+    Syntax: {{tag-name}} or {{tag-name:format(params)}}
+
+    Examples:
+      han2026 tags                    # Show all available tags
+      han2026 tags utility            # Show detailed docs for 'utility' tag
+      han2026 tags outcome-space      # Show detailed docs for 'outcome-space' tag
+    """
+    console = Console()
+
+    if tag_name is not None:
+        # Show specific tag documentation
+        docs = get_tag_documentation(tag_name)
+        if docs is None:
+            console.print(f"[red]Unknown tag: {tag_name}[/red]")
+            console.print(
+                f"\n[yellow]Available tags:[/yellow] {', '.join(get_available_tags())}"
+            )
+            raise typer.Exit(1)
+        else:
+            console.print(Markdown(docs))
+    else:
+        # Show summary of all tags grouped by category
+        console.print("\n[bold cyan]Available Tags for LLM Prompts[/bold cyan]")
+        console.print("[dim]═" * 60 + "[/dim]\n")
+
+        console.print(
+            "[yellow]Usage:[/yellow] Tags use the syntax: [green]{{tag-name}}[/green] or [green]{{tag-name:format(params)}}[/green]"
+        )
+        console.print("[yellow]Formats:[/yellow] 'text' (default), 'json'\n")
+
+        # Get all available tags
+        all_tags = get_available_tags()
+
+        # Group tags by category based on common patterns
+        context_tags = [
+            t
+            for t in all_tags
+            if t
+            in [
+                "outcome-space",
+                "utility-function",
+                "opponent-utility-function",
+                "nmi",
+                "current-state",
+            ]
+        ]
+        reserved_tags = [t for t in all_tags if "reserved-value" in t]
+        offer_tags = [t for t in all_tags if "offer" in t and "reserved" not in t]
+        history_tags = [
+            t
+            for t in all_tags
+            if t
+            in ["partner-offers", "history", "trace", "extended-trace", "full-trace"]
+        ]
+        utility_tags = [t for t in all_tags if t == "utility"]
+
+        # Display tags by category
+        def display_tag_group(title: str, tags: list[str]):
+            if tags:
+                console.print(f"\n[bold]{title}:[/bold]")
+                for tag in tags:
+                    # Get first line of documentation as short description
+                    docs = get_tag_documentation(tag)
+                    short_desc = ""
+                    if docs:
+                        # Extract description from markdown
+                        lines = docs.split("\n")
+                        for line in lines[1:]:  # Skip the header line
+                            line = line.strip()
+                            if (
+                                line
+                                and not line.startswith("#")
+                                and not line.startswith("**")
+                            ):
+                                short_desc = line
+                                break
+                    console.print(f"  [green]{{{{{tag}}}}}[/green]  - {short_desc}")
+
+        display_tag_group("Context Tags (no parameters)", context_tags)
+        display_tag_group("Reserved Value Tags", reserved_tags)
+        display_tag_group("Offer Reference Tags", offer_tags)
+        display_tag_group("History Tags (optional k parameter)", history_tags)
+        display_tag_group(
+            "Utility Computation Tags (requires outcome parameter)", utility_tags
+        )
+
+        console.print(
+            f"\n[dim]To see detailed documentation for any tag, run:[/dim] [cyan]han2026 tags <tag-name>[/cyan]"
+        )
+        console.print(f"[dim]Example:[/dim] [cyan]han2026 tags utility[/cyan]\n")
 
 
 if __name__ == "__main__":
