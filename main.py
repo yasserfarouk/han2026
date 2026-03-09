@@ -1,4 +1,5 @@
 import random
+import subprocess
 import sys
 import tempfile
 import webbrowser
@@ -21,9 +22,21 @@ from rich.table import Table
 import typer
 from typing import Annotated
 
-from mynegotiator import MyNegotiator
-
 app = typer.Typer(help="ANL2026 CLI application")
+
+# Default negotiator path used throughout the application
+MY_NEGOTIATOR = "mynegotiator.MyNegotiator"
+
+ALL_EXAMPLES = [
+    "examples.llm.HAN2026LLMNegotiator",  # Full LLM-based negotiator using Ollama and Qwen3:4b-instruct
+    "examples.llm_adapter.BoulwareBasedLLMNegotiator",  # LLM negotiator that uses a Boulware strategy for offer generation
+    "examples.nollm.SimpleNeg",  # Simple SAO-based negotiator with no natural language
+    "examples.nollm.BOANeg",  # BOA architecture negotiator with no natural language, using a frequency model for opponent modeling
+    "examples.nollm_adapter.TemplateBasedAdapterNegotiator",  # Adapter that adds predefined messages to a base negotiator
+]
+
+
+ALL_COMPETITORS = [MY_NEGOTIATOR] + ALL_EXAMPLES
 
 
 def generate_random_scenarios(
@@ -41,12 +54,15 @@ def generate_random_scenarios(
             ufun_names=("First", "Second"),
             rational_fractions=[rational_fraction, rational_fraction],
         )
-        scenarios.append(Scenario(outcome_space=ufuns[0].outcome_space, ufuns=ufuns))
+        os = ufuns[0].outcome_space
+        assert os is not None
+        scenarios.append(Scenario(outcome_space=os, ufuns=ufuns))  # type: ignore
+
     return scenarios
 
 
 def progress_callback(message: str, i: int, n: int, conf: dict | None = None) -> None:
-    print(message)
+    print(f"{i}/{n} - {message}")
 
 
 def calc_scores(m: SAOMechanism) -> dict[str, dict[str, float]]:
@@ -125,6 +141,13 @@ def run(
         ),
     ] = 1.0,
     # Negotiation Options
+    agent: Annotated[
+        str | None,
+        typer.Option(
+            help=f"Agent class to test. If not provided, uses {MY_NEGOTIATOR}.",
+            rich_help_panel="Negotiation",
+        ),
+    ] = None,
     opponent: Annotated[
         str | None,
         typer.Option(
@@ -192,17 +215,28 @@ def run(
             Path(__file__).parent / "scenarios" / scenario, ignore_discount=True
         )
         assert s is not None, f"Could not load scenario {scenario}"
+
+    # Set default agent if not provided
+    if agent is None:
+        agent = MY_NEGOTIATOR
+        print(
+            f"Will use agent [blue]{agent}[/blue] (to select a specific agent pass --agent=<agent_class>)"
+        )
+
     if opponent is None:
-        opponent = "negmas.sao.LinearTBNegotiator"
+        opponent = random.choice(ALL_EXAMPLES)
         print(
             f"Will use opponent [green]{opponent}[/green] (to select a specific opponent pass --opponent=<opponent_class>)"
         )
-    opp_name = opponent.split(".")[-1]
+
+    opp_name = opponent.split(".")[-1]  # type: ignore
+    agent_name = agent.split(".")[-1]  # type: ignore
+
     m = SAOMechanism(n_steps=100, outcome_space=s.outcome_space)
     m.add(
         instantiate(opponent, ufun=s.ufuns[0], id=opp_name, name=opp_name),
     )
-    m.add(MyNegotiator(ufun=s.ufuns[1], id="MyNegotiator", name="MyNegotiator"))
+    m.add(instantiate(agent, ufun=s.ufuns[1], id=agent_name, name=agent_name))
     m.run()
 
     # Get the trace dataframe
@@ -235,6 +269,9 @@ def run(
 
     if trace_browser:
         # Create an HTML table and open in browser
+        # Exclude 'data' column from the trace display
+        trace_df_display = trace_df.drop(columns=["data"], errors="ignore")
+
         html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -286,7 +323,7 @@ def run(
 <body>
     <h1>Negotiation Trace</h1>
     <div class="container">
-        {trace_df.to_html(index=False, classes="trace-table", border=0)}
+        {trace_df_display.to_html(index=False, classes="trace-table", border=0)}
     </div>
 </body>
 </html>
@@ -298,7 +335,7 @@ def run(
 
         # Open in browser
         webbrowser.open(f"file://{temp_path}")
-        print(f"[green]Trace opened in browser[/green]")
+        print("[green]Trace opened in browser[/green]")
 
     if plot:
         m.plot()
@@ -306,13 +343,45 @@ def run(
     print(calc_scores(m))
 
 
-DEFAULT_COMPETITORS = [
-    "negmas_llm.meta.LLMBoulwareTBNegotiator",
-    "mynegotiator.MyNegotiator",
-    "examples.adapter.BolwareBasedLLMNegotiator",
-    "examples.nollm.SimpleNeg",
-    "examples.nollm.BOANeg",
-]
+@app.command()
+def gui(
+    agents: Annotated[
+        str,
+        typer.Option(
+            help=f"Agent class to use in GUI. Defaults to han2026.{MY_NEGOTIATOR}.",
+            rich_help_panel="GUI",
+        ),
+    ] = f"han2026.{MY_NEGOTIATOR}",
+):
+    """Launch the HAN GUI with specified agent in guest mode (no authentication)."""
+    print(f"[blue]Launching HANI Guest GUI with agent: {agents}[/blue]")
+    print("[dim]This will open in your browser automatically...[/dim]\n")
+
+    try:
+        # Use hani-guest command for no-authentication playground mode
+        result = subprocess.run(
+            ["hani-guest", "--agents", agents],
+            check=True,
+            capture_output=False,
+        )
+        print("\n[green]HANI GUI closed successfully[/green]")
+    except subprocess.CalledProcessError:
+        print("\n[red]Error running HANI.[/red]")
+        print(
+            f"[yellow]Try running directly: [/yellow][green]hani-guest --agents {agents}[/green]"
+        )
+        raise typer.Exit(1)
+    except FileNotFoundError:
+        print("[red]Error: 'hani-guest' command not found.[/red]")
+        print("\n[yellow]Installation:[/yellow]")
+        print(
+            "  [green]uv pip install 'hani @ git+https://github.com/autoneg/hani.git@main'[/green]"
+        )
+        print("\n[yellow]Alternative:[/yellow]")
+        print(
+            f"  Use the main hani command: [green]hani --dev --agents {agents}[/green]"
+        )
+        raise typer.Exit(1)
 
 
 SCENARIOS_DIR = Path(__file__).parent / "scenarios"
@@ -402,7 +471,7 @@ def tournament(
     if name is None:
         name = unique_name("anl", sep="")
     if competitor is None:
-        competitor = DEFAULT_COMPETITORS
+        competitor = ALL_COMPETITORS
     path = Path.home() / "negmas" / "anl2026" / "tournaments" / name
 
     # Load scenarios from paths if provided, otherwise load all from scenarios directory
@@ -426,8 +495,7 @@ def tournament(
     results = cartesian_tournament(
         scenarios=scenarios,
         competitors=competitor_classes,  # type: ignore
-        opponent_modeling_metrics=("anl2026",),
-        final_score=("opp_anl2026", "mean"),
+        final_score=("advantage", "mean"),
         path=path,
         verbosity=verbosity,
         njobs=-1 if not parallel else 0,
@@ -567,9 +635,9 @@ def tags(
         )
 
         console.print(
-            f"\n[dim]To see detailed documentation for any tag, run:[/dim] [cyan]han2026 tags <tag-name>[/cyan]"
+            "\n[dim]To see detailed documentation for any tag, run:[/dim] [cyan]han2026 tags <tag-name>[/cyan]"
         )
-        console.print(f"[dim]Example:[/dim] [cyan]han2026 tags utility[/cyan]\n")
+        console.print("[dim]Example:[/dim] [cyan]han2026 tags utility[/cyan]\n")
 
 
 if __name__ == "__main__":

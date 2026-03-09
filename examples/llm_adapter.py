@@ -1,5 +1,14 @@
+from negmas.common import Outcome
 from negmas.gb import BoulwareTBNegotiator
+from negmas.sao import SAOState
 from negmas_llm.meta import LLMMetaNegotiator
+
+try:
+    from negmas_llm.common import DEFAULT_MODELS
+except ImportError:
+    DEFAULT_MODELS = dict(ollama="qwen3:4b-instruct")
+
+DEFAULT_OLLAMA_MODEL = DEFAULT_MODELS["ollama"]
 
 # =============================================================================
 # Default Prompt (copied from negmas_llm, customize as needed)
@@ -30,14 +39,14 @@ Keep messages brief (1-3 sentences) and professional.
 """
 
 
-class BolwareBasedLLMNegotiator(LLMMetaNegotiator):
+class BoulwareBasedLLMNegotiator(LLMMetaNegotiator):
     """A simple LLM-based negotiator that adapts an existing negotiator to use LLM."""
 
     def __init__(
         self,
         base_negotiator: BoulwareTBNegotiator | None = None,
         provider: str = "ollama",
-        model: str = "llama3.1:8b",
+        model: str = DEFAULT_OLLAMA_MODEL,
         **kwargs,
     ) -> None:
         """Initialize the BolwareBasedLLMNegotiator.
@@ -52,9 +61,57 @@ class BolwareBasedLLMNegotiator(LLMMetaNegotiator):
         if base_negotiator is None:
             base_negotiator = BoulwareTBNegotiator()
         super().__init__(
-            base_negotiator=base_negotiator,
+            base_negotiator=base_negotiator,  # type: ignore
             provider=provider,
             model=model,
             system_prompt=SYSTEM_PROMPT,
             **kwargs,
         )
+
+    def _build_system_prompt(self) -> str:
+        """Build the system prompt for text generation.
+
+        Returns:
+            The system prompt string.
+        """
+        return super()._build_system_prompt()
+
+    def _build_user_message(
+        self,
+        state: SAOState,
+        action: str,
+        outcome: Outcome | None = None,
+        received_text: str | None = None,
+    ) -> str:
+        """Build the user message for the LLM.
+
+        Args:
+            state: The current negotiation state.
+            action: The action being taken ("propose", "accept", "reject", "end").
+            outcome: The outcome being proposed (if any).
+            received_text: Text received from the other party (if any).
+
+        Returns:
+            The user message string.
+        """
+        return super()._build_user_message(state, action, outcome, received_text)
+
+    def _generate_text(
+        self,
+        state: SAOState,
+        action: str,
+        outcome: Outcome | None = None,
+        received_text: str | None = None,
+    ) -> str:
+        """Generate text to accompany an offer or response.
+
+        Args:
+            state: The current negotiation state.
+            action: The action being taken.
+            outcome: The outcome being proposed (if any).
+            received_text: Text received from the other party (if any).
+
+        Returns:
+            The generated text message.
+        """
+        return super()._generate_text(state, action, outcome, received_text)

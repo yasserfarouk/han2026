@@ -6,8 +6,9 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "hani>=0.1.0",
-    "negmas>=0.15.1",
+    "negmas @ git+https://github.com/yasserfarouk/negmas.git@main",
     "negmas-llm @ git+https://github.com/autoneg/negmas-llm.git@main",
+    "hani @ git+https://github.com/autoneg/hani.git@main",
     "typer>=0.15.0",
 ]
 

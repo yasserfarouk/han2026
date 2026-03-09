@@ -27,6 +27,7 @@ zip -r "$OUTPUT" . \
     -x ".pytest_cache/*" \
     -x ".gitignore" \
     -x ".envrc" \
+    -x ".env.local" \
     -x ".python-version" \
     -x "pyrightconfig.json" \
     -x ".pre-commit-config.yaml" \

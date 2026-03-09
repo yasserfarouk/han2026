@@ -24,6 +24,7 @@ tar -a -cf %OUTPUT% ^
     --exclude=.pytest_cache ^
     --exclude=.gitignore ^
     --exclude=.envrc ^
+    --exclude=.envrc.local ^
     --exclude=.python-version ^
     --exclude=pyrightconfig.json ^
     --exclude=.pre-commit-config.yaml ^

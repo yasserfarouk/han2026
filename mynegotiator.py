@@ -144,7 +144,6 @@ class MyNegotiator(OllamaNegotiator):
 
     def __init__(
         self,
-        model: str = "llama3.1:8b",
         temperature: float = 0.7,
         max_tokens: int = 1024,
         use_structured_output: bool = True,
@@ -168,7 +167,6 @@ class MyNegotiator(OllamaNegotiator):
                 preferences_changed_prompt, negotiation_start_prompt, round_prompt.
         """
         super().__init__(
-            model=model,
             temperature=temperature,
             max_tokens=max_tokens,
             use_structured_output=use_structured_output,

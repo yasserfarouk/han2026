@@ -7,8 +7,7 @@ A sample agent for the HAN 2026 competition built with [NegMAS](https://github.c
 1. **Install dependencies:** `uv sync` ([details](#installation))
 2. **Rename your agent:** Change `mynegotiator.py` → `your_agent.py` and `MyNegotiator` → `YourAgent` ([details](#getting-started-rename-your-agent))
 3. **Implement your agent:** Edit your renamed file ([details](#implementing-your-agent), [examples](#example-agents))
-4. **Test locally:** against LLM negotiators `han2026 run` and `han2026 tournament` ([details](#usage-from-the-command-line))
-5. **Test locally:** against human negotiators `hani --dev`.
+4. **Test locally:** Run `han2026 run` for agent-vs-agent testing and `han2026 gui` for human-vs-agent testing ([details](#usage-from-the-command-line))
 5. **Submit:** Zip and upload to the competition site ([details](#submission))
 
 > [!NOTE]
@@ -36,6 +35,7 @@ A sample agent for the HAN 2026 competition built with [NegMAS](https://github.c
 - [5. Usage from the command line](#5-usage-from-the-command-line)
   - [Running a single negotiation](#running-a-single-negotiation)
   - [Running a tournament](#running-a-tournament)
+  - [Testing with Human Negotiators (HANI GUI)](#testing-with-human-negotiators-hani-gui)
   - [Viewing Development and Submission Info](#viewing-development-and-submission-info)
   - [Viewing Available Prompt Tags](#viewing-available-prompt-tags)
 - [6. Development Workflows](#6-development-workflows)
@@ -49,7 +49,8 @@ A sample agent for the HAN 2026 competition built with [NegMAS](https://github.c
 ```
 .
 ├── examples/              # Example negotiator implementations
-│   ├── adapter.py         # LLM-based adapter that wraps existing negotiators
+│   ├── llm_adapter.py     # LLM-based adapter that wraps existing negotiators
+│   ├── nollm_adapter.py   # Template-based adapter that wraps existing negotiators with predefined messages
 │   └── nollm.py           # Non-LLM negotiators (BOA and simple SAO)
 ├── scenarios/             # Negotiation scenarios
 │   ├── Amsterdam/
@@ -117,7 +118,7 @@ Before you start developing, rename the agent module and class to match your sub
 
 1. **Rename the file:**
    - Right-click `mynegotiator.py` in the Explorer → Rename
-   - Enter your new name (e.g., `awsome.py`)
+   - Enter your new name (e.g., `awesome.py`)
 
 2. **Rename the class:**
    - Open the renamed file
@@ -125,12 +126,12 @@ Before you start developing, rename the agent module and class to match your sub
    - Press `F2` (or right-click → Rename Symbol)
    - Enter your new class name (e.g., `AwesomeNegotiator`)
 
-3. **Update imports in `main.py`:**
+3. **Update `main.py` (only 2 lines need changing):**
    - Open `main.py`
-   - Change line 20: `from mynegotiator import MyNegotiator`
-   - To: `from awesome import AwesomeNegotiator`
-   - Update line 186: `MyNegotiator(...)` → `AwesomeNegotiator(...)`
-   - Update line 198: `"mynegotiator.MyNegotiator"` → `"awsome.AwesomeNegotiator"`
+   - Line 25: Change `from mynegotiator import MyNegotiator` to `from awesome import AwesomeNegotiator`
+   - Line 30: Change `MY_NEGOTIATOR = "mynegotiator.MyNegotiator"` to `MY_NEGOTIATOR = "awesome.AwesomeNegotiator"`
+   
+   That's it! The `MY_NEGOTIATOR` variable is used throughout the application, so you only need to update it once.
 
 ### PyCharm
 
@@ -143,9 +144,13 @@ Before you start developing, rename the agent module and class to match your sub
    - Open the renamed file
    - Right-click on `MyNegotiator` → Refactor → Rename (or `Shift+F6`)
    - Enter your new class name (e.g., `AwesomeNegotiator`)
-   - PyCharm will update all references automatically
+   - PyCharm will update the import in `main.py` automatically
 
-3. **Verify imports in `main.py`** are updated correctly
+3. **Update the MY_NEGOTIATOR variable in `main.py`:**
+   - Open `main.py`
+   - Line 30: Change `MY_NEGOTIATOR = "mynegotiator.MyNegotiator"` to `MY_NEGOTIATOR = "awesome.AwesomeNegotiator"`
+   
+   This single variable update will propagate throughout the entire application.
 
 ### Vim/Neovim (with LSP)
 
@@ -159,9 +164,9 @@ Before you start developing, rename the agent module and class to match your sub
    - Use your LSP rename command (commonly `<leader>rn` or `:lua vim.lsp.buf.rename()`)
    - Enter the new name (e.g., `AwesomeNegotiator`)
 
-3. **Update imports in `main.py`:**
-   - Change `from mynegotiator import MyNegotiator` to `from awesome import AwesomeNegotiator`
-   - Update usages of `MyNegotiator` to `AwesomeNegotiator`
+3. **Update `main.py` (only 2 lines):**
+   - Line 25: Change `from mynegotiator import MyNegotiator` to `from awesome import AwesomeNegotiator`
+   - Line 30: Change `MY_NEGOTIATOR = "mynegotiator.MyNegotiator"` to `MY_NEGOTIATOR = "awesome.AwesomeNegotiator"`
 
 ### Manual Renaming (Any Editor)
 
@@ -173,10 +178,11 @@ Before you start developing, rename the agent module and class to match your sub
 2. **Edit the renamed file:**
    - Change `class MyNegotiator` to `class AwesomeNegotiator` (or your chosen name)
 
-3. **Edit `main.py`:**
-   - Line 20: Change `from mynegotiator import MyNegotiator` to `from awesome import AwesomeNegotiator`
-   - Line 186: Change `MyNegotiator(...)` to `AwesomeNegotiator(...)`
-   - Line 198: Change `"mynegotiator.MyNegotiator"` to `"awesome.AwesomeNegotiator"`
+3. **Edit `main.py` (only 2 lines):**
+   - Line 25: Change `from mynegotiator import MyNegotiator` to `from awesome import AwesomeNegotiator`
+   - Line 30: Change `MY_NEGOTIATOR = "mynegotiator.MyNegotiator"` to `MY_NEGOTIATOR = "awesome.AwesomeNegotiator"`
+   
+   > **Note:** The `MY_NEGOTIATOR` variable is used throughout `main.py` for default agent references, so updating it once updates all occurrences automatically.
 
 4. **Verify the changes:**
    ```bash
@@ -191,7 +197,7 @@ Your agent is implemented in your renamed module file. See the example agents be
 
 The `examples/` folder contains example negotiator implementations that demonstrate different approaches to building agents:
 
-#### BolwareBasedLLMNegotiator (`examples/adapter.py`)
+#### BoulwareBasedLLMNegotiator (`examples/llm_adapter.py`)
 
 An **LLM-based adapter** that wraps existing negotiators to add natural language communication capabilities. This example demonstrates how to use `LLMMetaNegotiator` to enhance any traditional negotiator with LLM-powered decision making:
 
@@ -204,7 +210,28 @@ This is useful when you want to leverage proven negotiation strategies while add
 You can test it with:
 
 ```bash
-han2026 run --opponent examples.adapter.BolwareBasedLLMNegotiator
+han2026 run --opponent examples.llm_adapter.BoulwareBasedLLMNegotiator
+```
+
+#### TemplateBasedAdapterNegotiator (`examples/nollm_adapter.py`)
+
+A **template-based adapter** that wraps existing negotiators to add context-aware natural language messages using predefined templates. This example demonstrates how to use `SAOMetaNegotiator` to enhance any traditional negotiator with natural language communication **without** requiring an LLM:
+
+- **Base Negotiator:** Uses `BoulwareTBNegotiator` as the underlying strategy (like the LLM adapter)
+- **Template Enhancement:** Generates messages from predefined templates that reference specific offer details
+- **Context-Aware:** Messages mention actual issue values (e.g., "price of 20 is too high, I'm proposing 30 instead")
+- **No LLM Required:** Fast and deterministic - great for testing and as a baseline
+
+This is useful when you want natural language communication without the overhead and variability of LLM calls.
+
+You can test it with:
+
+```bash
+han2026 run --opponent examples.nollm_adapter.TemplateBasedAdapterNegotiator
+
+# Or test it against itself to see template-based communication
+han2026 run --agent examples.nollm_adapter.TemplateBasedAdapterNegotiator \
+            --opponent examples.nollm_adapter.TemplateBasedAdapterNegotiator
 ```
 
 #### Non-LLM Negotiators (`examples/nollm.py`)
@@ -396,7 +423,7 @@ Respond with JSON.
 
 ### Customizing Example Agents
 
-#### Adapter Example (`examples/adapter.py`)
+#### Adapter Example (`examples/llm_adapter.py`)
 
 The adapter wraps a traditional negotiator with LLM capabilities. You can customize:
 
@@ -418,7 +445,7 @@ class CooperativeLLMNegotiator(LLMMetaNegotiator):
 
 **2. Modify the System Prompt:**
 
-The `SYSTEM_PROMPT` in `adapter.py` controls how the LLM generates text. Customize it to change the communication style:
+The `SYSTEM_PROMPT` in `llm_adapter.py` controls how the LLM generates text. Customize it to change the communication style:
 
 ```python
 SYSTEM_PROMPT = """
@@ -583,6 +610,112 @@ han2026 tournament --parallel --verbosity 1
 # Run tournament with custom competitors
 han2026 tournament --competitor mynegotiator.MyNegotiator --competitor examples.boa.BOANeg
 ```
+
+### Testing with Human Negotiators (HANI GUI)
+
+The HANI (Human-Agent Negotiation Interface) allows you to test your agent in real human-agent negotiations through an interactive GUI. This is valuable for:
+
+- **Understanding agent behavior:** See how your agent communicates and negotiates in real-time
+- **Identifying issues:** Spot problems with decision-making or message generation
+- **Evaluating user experience:** Test if your agent's messages are clear and persuasive
+- **Practice:** Experience negotiating against your own agent to find weaknesses
+
+#### Quick Start
+
+To launch the GUI with your agent in guest mode (no authentication required):
+
+```bash
+han2026 gui
+```
+
+This will start the HANI interface in guest/playground mode with your default agent (`mynegotiator.MyNegotiator`). The GUI will open in your browser automatically at `http://localhost:5006`. You can then negotiate against your agent as a human player.
+
+> **Note:** The `gui` command uses `hani-guest` which provides a simple, no-authentication interface perfect for local testing.
+
+#### Testing Different Agents
+
+To test a specific agent (including example agents):
+
+```bash
+# Test your renamed agent
+han2026 gui --agents awesome.AwesomeNegotiator
+
+# Test an example agent
+han2026 gui --agents examples.llm_adapter.BoulwareBasedLLMNegotiator
+
+# Test the template-based adapter
+han2026 gui --agents examples.nollm_adapter.TemplateBasedAdapterNegotiator
+
+# Test a simple non-LLM agent
+han2026 gui --agents examples.nollm.SimpleNeg
+```
+
+#### Using HANI Directly
+
+You can also use HANI commands directly for more control:
+
+```bash
+# Guest mode - simple playground without authentication (recommended for testing)
+hani-guest --agents mynegotiator.MyNegotiator
+
+# Development mode - allows editing code while running
+hani --dev --agents mynegotiator.MyNegotiator
+
+# Multiple agent types (GUI will let you choose which to negotiate against)
+hani-guest --agents mynegotiator.MyNegotiator,examples.nollm.BOANeg
+```
+
+#### GUI Features
+
+The HANI interface provides:
+
+- **Interactive negotiation:** Make offers, accept/reject proposals, and send messages
+- **Real-time feedback:** See your agent's responses and reasoning
+- **Scenario selection:** Choose from available scenarios or create custom ones
+- **Utility visualization:** Track utilities and negotiation progress
+- **Message history:** Review the full conversation and offers exchanged
+
+#### Tips for Testing
+
+1. **Start simple:** Test with straightforward scenarios like `Camera` or `Laptop` first
+2. **Observe patterns:** Watch how your agent responds to different offer sequences
+3. **Test edge cases:** Try extreme offers, quick acceptance, or delayed responses
+4. **Check messages:** Ensure your agent's text is appropriate and persuasive
+5. **Verify decisions:** Confirm your agent makes rational acceptance/rejection decisions
+
+#### Troubleshooting
+
+**If the `hani-guest` or `hani` commands are not found:**
+
+```bash
+# Install HANI from git repository
+uv pip install 'hani @ git+https://github.com/autoneg/hani.git@main'
+
+# Or with pip
+pip install 'hani @ git+https://github.com/autoneg/hani.git@main'
+
+# Verify installation
+pip show hani
+```
+
+**If you get errors when running `han2026 gui`:**
+
+Try running HANI directly to see more detailed error messages:
+
+```bash
+# Using guest mode (recommended)
+hani-guest --agents mynegotiator.MyNegotiator
+
+# Or using dev mode
+hani --dev --agents mynegotiator.MyNegotiator
+```
+
+**Common issues:**
+- **Port already in use:** Another instance of HANI might be running. Close it or use `Ctrl+C` to stop the server
+- **Browser doesn't open:** Manually navigate to the URL shown in the terminal (usually `http://localhost:5006`)
+- **Agent import errors:** Make sure your agent module is importable (check for syntax errors, missing dependencies, etc.)
+
+For more information about HANI, visit the [HANI repository](https://github.com/autoneg/hani).
 
 ### Viewing Development and Submission Info
 
