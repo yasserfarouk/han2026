@@ -348,10 +348,10 @@ def gui(
     agents: Annotated[
         str,
         typer.Option(
-            help=f"Agent class to use in GUI. Defaults to han2026.{MY_NEGOTIATOR}.",
+            help=f"Agent class to use in GUI. Defaults to file:{MY_NEGOTIATOR}.",
             rich_help_panel="GUI",
         ),
-    ] = f"han2026.{MY_NEGOTIATOR}",
+    ] = f"file:{MY_NEGOTIATOR}",
     use_dev: Annotated[
         bool,
         typer.Option(

@@ -620,7 +620,7 @@ dev = [
 [[package]]
 name = "hani"
 version = "0.2.0"
-source = { git = "https://github.com/autoneg/hani.git?rev=main#d6f6c7dc488c0ee247c42ca91f774a098cbfe069" }
+source = { git = "https://github.com/autoneg/hani.git?rev=main#6de779595bad6512628ec22531bb0e712183ea2a" }
 dependencies = [
     { name = "cryptography" },
     { name = "hvplot" },
