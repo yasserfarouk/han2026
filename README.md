@@ -630,7 +630,11 @@ han2026 gui
 
 This will start the HANI interface in guest/playground mode with your default agent (`mynegotiator.MyNegotiator`). The GUI will open in your browser automatically at `http://localhost:5006`. You can then negotiate against your agent as a human player.
 
-> **Note:** The `gui` command uses `hani-guest` which provides a simple, no-authentication interface perfect for local testing.
+> **Note:** If you get an "empty sequence" error, use the `--use-dev` flag instead:
+> ```bash
+> han2026 gui --use-dev
+> ```
+> This uses `hani --dev` which is more compatible with git-based installations.
 
 #### Testing Different Agents
 
@@ -648,6 +652,9 @@ han2026 gui --agents examples.nollm_adapter.TemplateBasedAdapterNegotiator
 
 # Test a simple non-LLM agent
 han2026 gui --agents examples.nollm.SimpleNeg
+
+# Use --use-dev flag if you encounter errors
+han2026 gui --use-dev --agents examples.nollm.SimpleNeg
 ```
 
 #### Using HANI Directly
@@ -711,9 +718,30 @@ hani --dev --agents mynegotiator.MyNegotiator
 ```
 
 **Common issues:**
-- **Port already in use:** Another instance of HANI might be running. Close it or use `Ctrl+C` to stop the server
-- **Browser doesn't open:** Manually navigate to the URL shown in the terminal (usually `http://localhost:5006`)
-- **Agent import errors:** Make sure your agent module is importable (check for syntax errors, missing dependencies, etc.)
+
+1. **"Cannot choose from an empty sequence" error:**
+   - This occurs when HANI's image assets are missing
+   - **Workaround:** Use the `hani --dev` command directly instead of `hani-guest`
+   - **Fix:** Reinstall HANI: `uv pip install --force-reinstall 'hani @ git+https://github.com/autoneg/hani.git@main'`
+   - **Alternative:** Clone the HANI repository and install from source to get all assets
+
+2. **Port already in use:**
+   - Another instance of HANI might be running
+   - Close it or use `Ctrl+C` to stop the server
+
+3. **Browser doesn't open:**
+   - Manually navigate to the URL shown in the terminal (usually `http://localhost:5006`)
+
+4. **Agent import errors:**
+   - Make sure your agent module is importable
+   - Check for syntax errors, missing dependencies, etc.
+   - Verify your agent works with: `han2026 run`
+
+**Note:** If `hani-guest` doesn't work due to missing assets, you can modify the `gui` command in `main.py` to use `hani --dev` instead, or run it directly:
+
+```bash
+hani --dev --agents han2026.mynegotiator.MyNegotiator
+```
 
 For more information about HANI, visit the [HANI repository](https://github.com/autoneg/hani).
 

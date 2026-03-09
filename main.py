@@ -352,23 +352,55 @@ def gui(
             rich_help_panel="GUI",
         ),
     ] = f"han2026.{MY_NEGOTIATOR}",
+    use_dev: Annotated[
+        bool,
+        typer.Option(
+            "--use-dev",
+            help="Use 'hani --dev' instead of 'hani-guest' (recommended if you get errors).",
+            rich_help_panel="GUI",
+        ),
+    ] = False,
 ):
-    """Launch the HAN GUI with specified agent in guest mode (no authentication)."""
-    print(f"[blue]Launching HANI Guest GUI with agent: {agents}[/blue]")
+    """Launch the HAN GUI with specified agent in guest/dev mode (no authentication)."""
+
+    # Determine which command to use
+    if use_dev:
+        cmd = ["hani", "--dev", "--agents", agents]
+        print(f"[blue]Launching HANI in dev mode with agent: {agents}[/blue]")
+    else:
+        cmd = ["hani-guest", "--agents", agents]
+        print(f"[blue]Launching HANI Guest GUI with agent: {agents}[/blue]")
+
     print("[dim]This will open in your browser automatically...[/dim]\n")
 
     try:
-        # Use hani-guest command for no-authentication playground mode
         result = subprocess.run(
-            ["hani-guest", "--agents", agents],
+            cmd,
             check=True,
             capture_output=False,
         )
         print("\n[green]HANI GUI closed successfully[/green]")
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
         print("\n[red]Error running HANI.[/red]")
+        if not use_dev:
+            print(
+                "[yellow]Tip: Try using --use-dev flag if you get 'empty sequence' errors:[/yellow]"
+            )
+            print(f"  [green]han2026 gui --use-dev --agents {agents}[/green]")
+        else:
+            print(
+                f"[yellow]Try running directly: [/yellow][green]hani --dev --agents {agents}[/green]"
+            )
+        raise typer.Exit(1)
+    except FileNotFoundError:
+        print(f"[red]Error: '{cmd[0]}' command not found.[/red]")
+        print("\n[yellow]Installation:[/yellow]")
         print(
-            f"[yellow]Try running directly: [/yellow][green]hani-guest --agents {agents}[/green]"
+            "  [green]uv pip install 'hani @ git+https://github.com/autoneg/hani.git@main'[/green]"
+        )
+        print("\n[yellow]Alternative:[/yellow]")
+        print(
+            f"  Use the main hani command: [green]hani --dev --agents {agents}[/green]"
         )
         raise typer.Exit(1)
     except FileNotFoundError:
