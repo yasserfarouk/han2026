@@ -641,23 +641,26 @@ This will start the HANI interface in guest/playground mode with your default ag
 To test a specific agent (including example agents):
 
 ```bash
-# Test your renamed agent (using file: prefix for local files)
+# Test your main negotiator (default)
+han2026 gui --agents file:mynegotiator.MyNegotiator
+
+# Test your renamed agent
 han2026 gui --agents file:awesome.AwesomeNegotiator
 
-# Test an example agent (using module path)
-han2026 gui --agents examples.llm_adapter.BoulwareBasedLLMNegotiator
-
-# Test the template-based adapter
-han2026 gui --agents examples.nollm_adapter.TemplateBasedAdapterNegotiator
-
-# Test a simple non-LLM agent
-han2026 gui --agents examples.nollm.SimpleNeg
+# Test example agents using file: prefix for local files
+han2026 gui --agents file:examples/nollm_adapter.TemplateBasedAdapterNegotiator
+han2026 gui --agents file:examples/nollm.SimpleNeg
+han2026 gui --agents file:examples/nollm.BOANeg
+han2026 gui --agents file:examples/llm_adapter.BoulwareBasedLLMNegotiator
 
 # Use --use-dev flag if you encounter errors
 han2026 gui --use-dev --agents file:mynegotiator.MyNegotiator
 ```
 
-> **Note:** Use the `file:` prefix for local agent files (e.g., `file:mynegotiator.MyNegotiator`). Use module paths for installed packages or examples (e.g., `examples.nollm.SimpleNeg`).
+> **Important:** Always use the `file:` prefix followed by the file path (without `.py` extension) and class name separated by a dot. For example:
+> - `file:mynegotiator.MyNegotiator` → loads `MyNegotiator` class from `mynegotiator.py`
+> - `file:examples/nollm.SimpleNeg` → loads `SimpleNeg` class from `examples/nollm.py`
+> - `file:awesome.AwesomeNegotiator` → loads `AwesomeNegotiator` class from `awesome.py`
 
 #### Using HANI Directly
 
@@ -670,11 +673,16 @@ hani-guest --agents file:mynegotiator.MyNegotiator
 # Development mode - allows editing code while running
 hani --dev --agents file:mynegotiator.MyNegotiator
 
+# Test different example agents
+hani-guest --agents file:examples/nollm_adapter.TemplateBasedAdapterNegotiator
+hani-guest --agents file:examples/nollm.SimpleNeg
+hani-guest --agents file:examples/nollm.BOANeg
+
 # Multiple agent types (GUI will let you choose which to negotiate against)
-hani-guest --agents file:mynegotiator.MyNegotiator,examples.nollm.BOANeg
+hani-guest --agents file:mynegotiator.MyNegotiator,file:examples/nollm.BOANeg,file:examples/nollm_adapter.TemplateBasedAdapterNegotiator
 ```
 
-> **Tip:** The `file:` prefix tells HANI to load the agent from a local Python file in your project directory.
+> **Tip:** The `file:` prefix tells HANI to load the agent from a local Python file in your project directory. Use forward slashes (`/`) for subdirectories, even on Windows.
 
 #### GUI Features
 
