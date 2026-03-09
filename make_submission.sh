@@ -33,6 +33,10 @@ zip -r "$OUTPUT" . \
     -x ".pre-commit-config.yaml" \
     -x "make_submission.sh" \
     -x "make_submission.bat" \
+    -x "update_package.sh" \
+    -x "update_package.bat" \
+    -x "update_all_packages.sh" \
+    -x "update_all_packages.bat" \
     -x "dist/*" \
     -x "*.egg-info/*"
 

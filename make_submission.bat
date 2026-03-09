@@ -30,6 +30,10 @@ tar -a -cf %OUTPUT% ^
     --exclude=.pre-commit-config.yaml ^
     --exclude=make_submission.sh ^
     --exclude=make_submission.bat ^
+    --exclude=update_package.sh ^
+    --exclude=update_package.bat ^
+    --exclude=update_all_packages.sh ^
+    --exclude=update_all_packages.bat ^
     --exclude=dist ^
     --exclude=*.egg-info ^
     .
