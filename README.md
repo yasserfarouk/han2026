@@ -49,8 +49,9 @@ A sample agent for the HAN 2026 competition built with [NegMAS](https://github.c
 ```
 .
 ├── examples/              # Example negotiator implementations
+│   ├── llm.py             # Pure LLM negotiator (standalone, no base negotiator)
 │   ├── llm_adapter.py     # LLM-based adapter that wraps existing negotiators
-│   ├── nollm_adapter.py   # Template-based adapter that wraps existing negotiators with predefined messages
+│   ├── nollm_adapter.py   # Template-based adapter that wraps existing negotiators
 │   └── nollm.py           # Non-LLM negotiators (BOA and simple SAO)
 ├── scenarios/             # Negotiation scenarios
 │   ├── Amsterdam/
@@ -197,6 +198,22 @@ Your agent is implemented in your renamed module file. See the example agents be
 ### Example Agents
 
 The `examples/` folder contains example negotiator implementations that demonstrate different approaches to building agents:
+
+#### HAN2026LLMNegotiator (`examples/llm.py`)
+
+A **pure LLM negotiator** that handles all negotiation decisions directly through an LLM. This is the simplest way to create an LLM-based agent - it extends `OllamaNegotiator` and lets the LLM make all decisions:
+
+- **Standalone:** No base negotiator - the LLM handles everything
+- **Customizable:** All prompts can be overridden via constructor parameters
+- **Model:** Uses `qwen3:4b-instruct` by default (configurable)
+
+This is useful when you want the LLM to have full control over negotiation strategy and don't need a traditional negotiator as a fallback.
+
+You can test it with:
+
+```bash
+han2026 run --opponent examples.llm.HAN2026LLMNegotiator
+```
 
 #### BoulwareBasedLLMNegotiator (`examples/llm_adapter.py`)
 
