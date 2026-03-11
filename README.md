@@ -5,7 +5,7 @@ A sample agent for the HAN 2026 competition built with [NegMAS](https://github.c
 ## Quick Start
 
 1. **Install dependencies:** `uv sync` ([details](#installation))
-2. **Rename your agent:** Change `mynegotiator.py` → `your_agent.py` and `MyNegotiator` → `YourAgent` ([details](#getting-started-rename-your-agent))
+2. **Rename your agent:** Change `mynegotiator.py` to `your_agent.py` and `MyNegotiator` to `YourAgent` ([details](#getting-started-rename-your-agent))
 3. **Implement your agent:** Edit your renamed file ([details](#implementing-your-agent), [examples](#example-agents))
 4. **Test locally:** Run `han2026 run` for agent-vs-agent testing and `han2026 gui` for human-vs-agent testing ([details](#usage-from-the-command-line))
 5. **Submit:** Zip and upload to the competition site ([details](#submission))
@@ -75,11 +75,13 @@ A sample agent for the HAN 2026 competition built with [NegMAS](https://github.c
 First, install [uv](https://docs.astral.sh/uv/) if you do not have it:
 
 **Linux/macOS:**
+
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 powershell -ExecutionPolicy ByPass -c `
   "irm https://astral.sh/uv/install.ps1 | iex"
@@ -100,11 +102,13 @@ uv sync --upgrade-package negmas
 ### Using pip
 
 **Linux/macOS:**
+
 ```bash
 pip install -e .
 ```
 
 **Windows:**
+
 ```cmd
 pip install -e .
 ```
@@ -114,22 +118,26 @@ pip install -e .
 Before you start developing, rename the agent module and class to match your submission name. This helps identify your agent in tournaments and is required for submission.
 
 **Naming conventions:**
+
 - **Module (file):** `snake_case` (e.g., `awesome.py`, `smart_negotiator.py`)
 - **Class:** `TitleCase` (e.g., `AwesomeNegotiator`, `SmartNegotiator`)
 
 ### VS Code
 
 1. **Rename the file:**
-   - Right-click `mynegotiator.py` in the Explorer → Rename
+
+   - Right-click `mynegotiator.py` in the Explorer, then Rename
    - Enter your new name (e.g., `awesome.py`)
 
 2. **Rename the class:**
+
    - Open the renamed file
    - Click on `MyNegotiator` class name
-   - Press `F2` (or right-click → Rename Symbol)
+   - Press `F2` (or right-click, then Rename Symbol)
    - Enter your new class name (e.g., `AwesomeNegotiator`)
 
 3. **Update `main.py` (only 2 lines need changing):**
+
    - Open `main.py`
    - Line 25: Change `from mynegotiator import MyNegotiator` to `from awesome import AwesomeNegotiator`
    - Line 30: Change `MY_NEGOTIATOR = "mynegotiator.MyNegotiator"` to `MY_NEGOTIATOR = "awesome.AwesomeNegotiator"`
@@ -139,55 +147,65 @@ Before you start developing, rename the agent module and class to match your sub
 ### PyCharm
 
 1. **Rename the file:**
-   - Right-click `mynegotiator.py` in Project view → Refactor → Rename (or `Shift+F6`)
+
+   - Right-click `mynegotiator.py` in Project view, then Refactor, then Rename (or `Shift+F6`)
    - Enter your new name (e.g., `awesome.py`)
    - Check "Search for references" and "Search in comments and strings"
 
 2. **Rename the class:**
+
    - Open the renamed file
-   - Right-click on `MyNegotiator` → Refactor → Rename (or `Shift+F6`)
+   - Right-click on `MyNegotiator`, then Refactor, then Rename (or `Shift+F6`)
    - Enter your new class name (e.g., `AwesomeNegotiator`)
    - PyCharm will update the import in `main.py` automatically
 
 3. **Update the MY_NEGOTIATOR variable in `main.py`:**
+
    - Open `main.py`
-   - Line 30: Change `MY_NEGOTIATOR = "mynegotiator.MyNegotiator"` to `MY_NEGOTIATOR = "awesome.AwesomeNegotiator"`
+   - Change `MY_NEGOTIATOR = "mynegotiator.MyNegotiator"` to `MY_NEGOTIATOR = "awesome.AwesomeNegotiator"`
    
    This single variable update will propagate throughout the entire application.
 
 ### Vim/Neovim (with LSP)
 
 1. **Rename the file:**
+
    ```bash
    mv mynegotiator.py awesome.py
    ```
 
 2. **Rename the class (using LSP rename):**
+
    - Open the file and place cursor on `MyNegotiator`
    - Use your LSP rename command (commonly `<leader>rn` or `:lua vim.lsp.buf.rename()`)
    - Enter the new name (e.g., `AwesomeNegotiator`)
 
 3. **Update `main.py` (only 2 lines):**
-   - Line 25: Change `from mynegotiator import MyNegotiator` to `from awesome import AwesomeNegotiator`
-   - Line 30: Change `MY_NEGOTIATOR = "mynegotiator.MyNegotiator"` to `MY_NEGOTIATOR = "awesome.AwesomeNegotiator"`
+
+   - Change `from mynegotiator import MyNegotiator` to `from awesome import AwesomeNegotiator`
+   - Change `MY_NEGOTIATOR = "mynegotiator.MyNegotiator"` to `MY_NEGOTIATOR = "awesome.AwesomeNegotiator"`
 
 ### Manual Renaming (Any Editor)
 
 1. **Rename the file:**
+
    ```bash
    mv mynegotiator.py awesome.py
    ```
 
 2. **Edit the renamed file:**
+
    - Change `class MyNegotiator` to `class AwesomeNegotiator` (or your chosen name)
 
 3. **Edit `main.py` (only 2 lines):**
+
    - Line 25: Change `from mynegotiator import MyNegotiator` to `from awesome import AwesomeNegotiator`
    - Line 30: Change `MY_NEGOTIATOR = "mynegotiator.MyNegotiator"` to `MY_NEGOTIATOR = "awesome.AwesomeNegotiator"`
    
    > **Note:** The `MY_NEGOTIATOR` variable is used throughout `main.py` for default agent references, so updating it once updates all occurrences automatically.
 
 4. **Verify the changes:**
+
    ```bash
    han2026 run
    ```
@@ -384,6 +402,7 @@ Tags allow you to dynamically insert negotiation context into prompts. They are 
 #### Common Tags and Examples
 
 To see all available tags, run:
+
 ```bash
 han2026 tags
 ```
@@ -391,23 +410,27 @@ han2026 tags
 Here are some frequently used tags:
 
 **Outcome Space Tags:**
+
 - `{{outcome-space:json}}` - Get the full outcome space in JSON format
 - `{{outcome-space:text}}` - Get human-readable outcome space description
 - `{{n-outcomes}}` - Number of possible outcomes
 
 **Utility Tags:**
+
 - `{{utility:text(outcome={{opponent-last-offer}})}}` - Compute utility of opponent's last offer
 - `{{utility-function:text}}` - Your utility function description
 - `{{reserved-value}}` - Your walk-away utility value
 - `{{opponent-utility-function:text}}` - Opponent's utility (if available)
 
 **History Tags:**
+
 - `{{history:text}}` - Full negotiation history
 - `{{history:text(k=5)}}` - Last 5 negotiation steps
 - `{{opponent-last-offer}}` - Opponent's most recent offer
 - `{{my-last-offer}}` - Your most recent offer
 
 **Context Tags:**
+
 - `{{nmi:text}}` - Negotiation mechanism information (time limit, steps, etc.)
 - `{{step}}` - Current negotiation step number
 - `{{relative-time}}` - How much time has elapsed (0.0 to 1.0)
@@ -475,6 +498,7 @@ You are assisting in automated negotiation by generating natural language
 messages. Be BRIEF and DIRECT - keep messages under 20 words when possible.
 
 Available information:
+
 - {{outcome-space:text}}
 - {{history:text(k=3)}}
 
@@ -546,6 +570,7 @@ def respond(state, offer):
 ```
 
 For detailed tag documentation, use:
+
 ```bash
 han2026 tags <tag-name>
 ```
@@ -563,6 +588,7 @@ han2026 run
 ```
 
 This will run your agent against a random opponent on a random scenario and report:
+
 - **Advantage:** utility - reserved-value
 - **Deception:** How well you confuse your opponent's model of you
 - **Score:** The final HAN 2026 score
@@ -620,6 +646,7 @@ This will run your agent against multiple opponents across all scenarios and rep
 | `--parallel` | Run tournament in parallel mode using all cores |
 
 Examples:
+
 ```bash
 # Run tournament on specific scenarios
 han2026 tournament --scenario Camera --scenario Car
@@ -679,9 +706,9 @@ han2026 gui --agents file:examples/llm_adapter.BoulwareBasedLLMNegotiator
 ```
 
 > **Important:** Always use the `file:` prefix followed by the file path (without `.py` extension) and class name separated by a dot. For example:
-> - `file:mynegotiator.MyNegotiator` → loads `MyNegotiator` class from `mynegotiator.py`
-> - `file:examples/nollm.SimpleNeg` → loads `SimpleNeg` class from `examples/nollm.py`
-> - `file:awesome.AwesomeNegotiator` → loads `AwesomeNegotiator` class from `awesome.py`
+> - `file:mynegotiator.MyNegotiator` -- loads `MyNegotiator` class from `mynegotiator.py`
+> - `file:examples/nollm.SimpleNeg` -- loads `SimpleNeg` class from `examples/nollm.py`
+> - `file:awesome.AwesomeNegotiator` -- loads `AwesomeNegotiator` class from `awesome.py`
 
 #### Using HANI Directly
 
@@ -766,9 +793,11 @@ Tags can be used in custom prompts to dynamically insert negotiation context suc
 1. Open the project folder in VS Code
 2. Install the recommended Python extension
 3. Select the Python interpreter from `.venv`:
+
    - Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (macOS)
    - Type "Python: Select Interpreter"
    - Choose the interpreter from `.venv/bin/python` (Linux/macOS) or `.venv\Scripts\python.exe` (Windows)
+
 4. Edit your agent file (renamed from `mynegotiator.py`) to implement your agent
 5. Run tests with `pytest` in the integrated terminal
 6. Run your agent with `han2026 run`
@@ -779,6 +808,7 @@ Tags can be used in custom prompts to dynamically insert negotiation context suc
 2. Activate the virtual environment or use `uv run` prefix for commands
 3. Edit your agent file (renamed from `mynegotiator.py`) to implement your agent
 4. Run commands from the terminal:
+
    ```bash
    han2026 run
    pytest
@@ -788,8 +818,10 @@ Tags can be used in custom prompts to dynamically insert negotiation context suc
 
 1. Open the project folder
 2. Configure the Python interpreter to use `.venv`:
+
    - Go to Settings/Preferences > Project > Python Interpreter
    - Add the interpreter from `.venv/bin/python` (Linux/macOS) or `.venv\Scripts\python.exe` (Windows)
+
 3. Edit your agent file (renamed from `mynegotiator.py`) to implement your agent
 4. Use the built-in terminal to run:
    ```bash
@@ -821,11 +853,13 @@ and
    **Using the provided scripts (recommended):**
 
    Linux/macOS:
+
    ```bash
    ./make_submission.sh
    ```
 
    Windows:
+
    ```cmd
    make_submission.bat
    ```
@@ -833,6 +867,7 @@ and
    **Or manually:**
 
    Linux/macOS:
+
    ```bash
    zip -r submission.zip . -x ".*" -x "*.sh" -x "*.bat" \
      -x "__pycache__/*" -x "examples/*" -x "report/*" \
@@ -840,12 +875,14 @@ and
    ```
 
    Windows (PowerShell):
+
    ```powershell
    Get-ChildItem -Exclude .*,*.sh,*.bat,__pycache__,examples,report,scenarios,tests |
      Compress-Archive -DestinationPath submission.zip -Force
    ```
 
    Windows (Command Prompt with tar):
+
    ```cmd
    tar -a -cf submission.zip --exclude=".*" --exclude="*.sh" ^
      --exclude="*.bat" --exclude=__pycache__ --exclude=examples ^
@@ -911,6 +948,7 @@ hani --dev --agents mynegotiator.MyNegotiator
 **Common issues:**
 
 1. **"Cannot choose from an empty sequence" error:**
+
    - This occurs when HANI's image assets are missing
    - **Workaround:** Use `han2026 gui --use-dev` or run `hani --dev` directly
    - **Fix:** Reinstall HANI:
@@ -921,13 +959,16 @@ hani --dev --agents mynegotiator.MyNegotiator
    - **Alternative:** Clone the HANI repository and install from source
 
 2. **Port already in use:**
+
    - Another instance of HANI might be running
    - Close it or use `Ctrl+C` to stop the server
 
 3. **Browser doesn't open:**
+
    - Manually navigate to `http://localhost:5006`
 
 4. **Agent import errors:**
+
    - Make sure your agent module is importable
    - Check for syntax errors, missing dependencies, etc.
    - Verify your agent works with: `han2026 run`
