@@ -1,4 +1,4 @@
-# HAN 2026 Sample Agent
+# HAN 2026 Template Documentation
 
 A sample agent for the HAN 2026 competition built with [NegMAS](https://github.com/yasserfarouk/negmas) and [NegMAS-LLM](https://github.com/autoneg/negmas-llm). You can test your agent using the [HANI](https://github.com/autoneg/hani) interface.
 
@@ -79,7 +79,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 **Windows (PowerShell):**
 ```powershell
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+powershell -ExecutionPolicy ByPass -c `
+  "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 Then install the project dependencies (all platforms):
@@ -263,7 +264,12 @@ han2026 run --opponent examples.nollm.SimpleNeg
 You can see all available components from negmas using:
 
 ```bash
-python -c "from negmas.registry import component_registry as CR; print(CR.keys());"
+# Linux/macOS
+python -c "from negmas.registry import component_registry as CR; \
+  print(CR.keys());"
+
+# Windows (single line)
+# python -c "from negmas.registry import component_registry as CR; print(CR.keys());"
 ```
 
 > [!NOTE]
@@ -607,8 +613,15 @@ han2026 tournament --generate-scenarios 10
 # Run tournament in parallel with verbose output
 han2026 tournament --parallel --verbosity 1
 
-# Run tournament with custom competitors
-han2026 tournament --competitor mynegotiator.MyNegotiator --competitor examples.boa.BOANeg
+# Run tournament with custom competitors (Linux/macOS)
+han2026 tournament \
+  --competitor mynegotiator.MyNegotiator \
+  --competitor examples.boa.BOANeg
+
+# Run tournament with custom competitors (Windows CMD)
+# han2026 tournament ^
+#   --competitor mynegotiator.MyNegotiator ^
+#   --competitor examples.boa.BOANeg
 ```
 
 ### Testing with Human Negotiators (HANI GUI)
@@ -678,8 +691,17 @@ hani-guest --agents file:examples/nollm_adapter.TemplateBasedAdapterNegotiator
 hani-guest --agents file:examples/nollm.SimpleNeg
 hani-guest --agents file:examples/nollm.BOANeg
 
-# Multiple agent types (GUI will let you choose which to negotiate against)
-hani-guest --agents file:mynegotiator.MyNegotiator,file:examples/nollm.BOANeg,file:examples/nollm_adapter.TemplateBasedAdapterNegotiator
+# Multiple agent types (Linux/macOS)
+hani-guest --agents \
+  file:mynegotiator.MyNegotiator,\
+file:examples/nollm.BOANeg,\
+file:examples/nollm_adapter.TemplateBasedAdapterNegotiator
+
+# Multiple agent types (Windows CMD) - use ^ for line continuation
+# hani-guest --agents ^
+#   file:mynegotiator.MyNegotiator,^
+#   file:examples/nollm.BOANeg,^
+#   file:examples/nollm_adapter.TemplateBasedAdapterNegotiator
 ```
 
 > **Tip:** The `file:` prefix tells HANI to load the agent from a local Python file in your project directory. Use forward slashes (`/`) for subdirectories, even on Windows.
@@ -857,17 +879,51 @@ and
 
    Linux/macOS:
    ```bash
-   zip -r submission.zip . -x "examples/*" -x "scenarios/*" -x "report/*" -x "tests/*" -x "README.md" -x "main.py" -x "pyproject.toml" -x "uv.lock" -x ".git/*" -x ".venv/*" -x "__pycache__/*" -x "*.pyc" -x ".ruff_cache/*" -x ".pytest_cache/*"
+   zip -r submission.zip . \
+     -x "examples/*" \
+     -x "scenarios/*" \
+     -x "report/*" \
+     -x "tests/*" \
+     -x "README.md" \
+     -x "main.py" \
+     -x "pyproject.toml" \
+     -x "uv.lock" \
+     -x ".git/*" \
+     -x ".venv/*" \
+     -x "__pycache__/*" \
+     -x "*.pyc" \
+     -x ".ruff_cache/*" \
+     -x ".pytest_cache/*"
    ```
 
    Windows (PowerShell):
    ```powershell
-   Get-ChildItem -Exclude examples, scenarios, report, tests, README.md, main.py, pyproject.toml, uv.lock, .git, .venv, __pycache__, .ruff_cache, .pytest_cache | Compress-Archive -DestinationPath submission.zip -Force
+   $exclude = @(
+     'examples', 'scenarios', 'report', 'tests',
+     'README.md', 'main.py', 'pyproject.toml', 'uv.lock',
+     '.git', '.venv', '__pycache__',
+     '.ruff_cache', '.pytest_cache'
+   )
+   Get-ChildItem -Exclude $exclude |
+     Compress-Archive -DestinationPath submission.zip -Force
    ```
 
    Windows (Command Prompt with tar):
    ```cmd
-   tar -a -cf submission.zip --exclude=examples --exclude=scenarios --exclude=report --exclude=tests --exclude=README.md --exclude=main.py --exclude=pyproject.toml --exclude=uv.lock --exclude=.git --exclude=.venv --exclude=__pycache__ --exclude=.ruff_cache --exclude=.pytest_cache .
+   tar -a -cf submission.zip ^
+     --exclude=examples ^
+     --exclude=scenarios ^
+     --exclude=report ^
+     --exclude=tests ^
+     --exclude=README.md ^
+     --exclude=main.py ^
+     --exclude=pyproject.toml ^
+     --exclude=uv.lock ^
+     --exclude=.git ^
+     --exclude=.venv ^
+     --exclude=__pycache__ ^
+     --exclude=.ruff_cache ^
+     --exclude=.pytest_cache .
    ```
 
 5. Submit your agent following the competition guidelines at [HAN 2026 Competition Page](https://anac.cs.brown.edu/han)
