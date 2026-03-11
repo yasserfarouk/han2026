@@ -365,6 +365,7 @@ The negotiation has now started. For each round, you should:
 4. **Communicate effectively**: Provide persuasive text that advances your position
 
 Respond in this JSON format for each decision:
+
 ```json
 {
     "response_type": "accept" | "reject" | "end" | "wait",
@@ -374,9 +375,6 @@ Respond in this JSON format for each decision:
 }
 ```
 
-Ready to begin!
-"""
-```
 
 ### Using Tags in Prompts
 
@@ -878,7 +876,7 @@ and
 
 2. Test your agent locally using `han2026 run` and `han2026 tournament`
 3. Add any extra dependencies you need for your agent in requirements.txt. Try to always use the most recent version of each library to maximize the re-usability of your agent in the future.
-4. Zip the code for your agent (no need to include examples, scenarios, report, tests, README.md, main.py, pyproject.toml, uv.lock) in your submission:
+4. Zip the code for your agent, excluding: `.*` (dotfiles/folders), `*.sh`/`*.bat` scripts, `__pycache__/`, `examples/`, `report/`, `scenarios/`, and `tests/`:
 
    **Using the provided scripts (recommended):**
 
@@ -896,51 +894,22 @@ and
 
    Linux/macOS:
    ```bash
-   zip -r submission.zip . \
-     -x "examples/*" \
-     -x "scenarios/*" \
-     -x "report/*" \
-     -x "tests/*" \
-     -x "README.md" \
-     -x "main.py" \
-     -x "pyproject.toml" \
-     -x "uv.lock" \
-     -x ".git/*" \
-     -x ".venv/*" \
-     -x "__pycache__/*" \
-     -x "*.pyc" \
-     -x ".ruff_cache/*" \
-     -x ".pytest_cache/*"
+   zip -r submission.zip . -x ".*" -x "*.sh" -x "*.bat" \
+     -x "__pycache__/*" -x "examples/*" -x "report/*" \
+     -x "scenarios/*" -x "tests/*"
    ```
 
    Windows (PowerShell):
    ```powershell
-   $exclude = @(
-     'examples', 'scenarios', 'report', 'tests',
-     'README.md', 'main.py', 'pyproject.toml', 'uv.lock',
-     '.git', '.venv', '__pycache__',
-     '.ruff_cache', '.pytest_cache'
-   )
-   Get-ChildItem -Exclude $exclude |
+   Get-ChildItem -Exclude .*,*.sh,*.bat,__pycache__,examples,report,scenarios,tests |
      Compress-Archive -DestinationPath submission.zip -Force
    ```
 
    Windows (Command Prompt with tar):
    ```cmd
-   tar -a -cf submission.zip ^
-     --exclude=examples ^
-     --exclude=scenarios ^
-     --exclude=report ^
-     --exclude=tests ^
-     --exclude=README.md ^
-     --exclude=main.py ^
-     --exclude=pyproject.toml ^
-     --exclude=uv.lock ^
-     --exclude=.git ^
-     --exclude=.venv ^
-     --exclude=__pycache__ ^
-     --exclude=.ruff_cache ^
-     --exclude=.pytest_cache .
+   tar -a -cf submission.zip --exclude=".*" --exclude="*.sh" ^
+     --exclude="*.bat" --exclude=__pycache__ --exclude=examples ^
+     --exclude=report --exclude=scenarios --exclude=tests .
    ```
 
 5. Submit your agent following the competition guidelines at [HAN 2026 Competition Page](https://anac.cs.brown.edu/han)
