@@ -412,3 +412,60 @@ class TestTemplateBasedAdapterNegotiator:
         )
         m3.run()
         assert m3.state.step <= 20
+
+    def test_opening_offer_message_does_not_mention_rejection(self):
+        """Test that opening offer message doesn't mention rejecting opponent's offer."""
+        from negmas.gb import BoulwareTBNegotiator
+        from examples.nollm_adapter import (
+            OPENING_OFFER_STARTERS,
+            REJECTION_STARTERS,
+        )
+
+        # Create utilities
+        ufuns = generate_multi_issue_ufuns(
+            n_issues=2, n_values=(3, 5), n_ufuns=2, reserved_values=0.0
+        )
+
+        # Create the negotiator
+        neg = TemplateBasedAdapterNegotiator(
+            base_negotiator=BoulwareTBNegotiator(),
+            ufun=ufuns[0],
+            name="TestNeg",
+        )
+
+        # Create mechanism and add negotiators
+        m = SAOMechanism(outcome_space=ufuns[0].outcome_space, n_steps=10)
+        m.add(neg)
+        m.add(BoulwareTBNegotiator(ufun=ufuns[1], name="Opponent"))
+
+        # Get the initial state (before any offers)
+        state = m.state
+
+        # Verify current_offer is None at the start
+        assert state.current_offer is None, "Initial state should have no current offer"
+
+        # Generate an opening offer message using the method directly
+        my_offer = (1, 2)  # Dummy offer
+        message = neg._generate_rejection_and_counteroffer_message(
+            state, my_offer, None
+        )
+
+        # Verify the message uses opening starter, not rejection starter
+        uses_opening_starter = any(
+            starter in message for starter in OPENING_OFFER_STARTERS
+        )
+        uses_rejection_starter = any(
+            starter in message for starter in REJECTION_STARTERS
+        )
+
+        assert uses_opening_starter, f"Expected opening starter, got: {message}"
+        assert not uses_rejection_starter, (
+            f"Should not use rejection starter: {message}"
+        )
+
+        # Also verify it doesn't mention "reject", "cannot accept", etc.
+        rejection_keywords = ["reject", "cannot accept", "don't accept", "decline"]
+        for keyword in rejection_keywords:
+            assert keyword.lower() not in message.lower(), (
+                f"Opening message should not contain '{keyword}': {message}"
+            )

@@ -104,6 +104,35 @@ REJECTION_ENDERS = [
     "I'm open to further discussion on this.",
 ]
 
+# Opening offer messages (for the first proposal when no opponent offer exists)
+OPENING_OFFER_STARTERS = [
+    "Thank you for the opportunity to negotiate. Let me start with",
+    "I'm pleased to begin our negotiation. Here's my initial proposal:",
+    "Let's get started! I'd like to propose",
+    "I appreciate the chance to discuss terms. My opening offer is",
+    "Hello! I'd like to kick things off with",
+    "Great to meet you! Here's what I have in mind:",
+    "Let me begin by proposing",
+    "To start our discussion, I'd like to suggest",
+    "I'm excited to negotiate with you. My first offer is",
+    "Let's find a mutually beneficial agreement. I propose",
+    "Thank you for negotiating with me. I'd like to start with",
+    "Here's my opening position:",
+]
+
+OPENING_OFFER_ENDERS = [
+    "I'm open to hearing your thoughts.",
+    "Let me know what you think.",
+    "I look forward to your response.",
+    "I hope this is a good starting point.",
+    "I'm eager to hear your perspective.",
+    "What do you think?",
+    "I believe this is a fair starting point.",
+    "Let's work together to find common ground.",
+    "I'm confident we can reach an agreement.",
+    "Looking forward to a productive negotiation.",
+]
+
 
 class TemplateBasedAdapterNegotiator(SAOMetaNegotiator):
     """A negotiator that adapts a base negotiator by adding predefined text messages.
@@ -296,7 +325,11 @@ class TemplateBasedAdapterNegotiator(SAOMetaNegotiator):
         their_offer = state.current_offer
         my_offer = outcome
 
-        if their_offer is None or my_offer is None or self.nmi is None:
+        # Check if this is an opening offer (no opponent offer yet)
+        if their_offer is None:
+            return self._generate_opening_offer_message(state, my_offer)
+
+        if my_offer is None or self.nmi is None:
             # Fallback to generic message
             return "I cannot accept your offer. Let me propose an alternative that better suits both our needs."
 
@@ -367,3 +400,44 @@ class TemplateBasedAdapterNegotiator(SAOMetaNegotiator):
             return f"{starter} {core_message}. {ender}"
         else:
             return f"{starter} {core_message}."
+
+    def _generate_opening_offer_message(
+        self,
+        state: SAOState,
+        my_offer: Outcome | None,
+    ) -> str:
+        """Generate a message for the opening offer (when no opponent offer exists yet).
+
+        Args:
+            state: The current negotiation state.
+            my_offer: The offer being proposed.
+
+        Returns:
+            A friendly opening message describing the initial proposal.
+        """
+        starter = random.choice(OPENING_OFFER_STARTERS)
+
+        # Try to describe the offer details
+        if my_offer is not None and self.nmi is not None:
+            outcome_space = self.nmi.outcome_space
+            if outcome_space:
+                issues = getattr(outcome_space, "issues", None)
+                if issues:
+                    # Describe 1-2 key issues from the offer
+                    details = []
+                    for i, issue in enumerate(issues[:2]):
+                        if i < len(my_offer):
+                            value = my_offer[i]
+                            details.append(f"{issue.name}={value}")
+                    if details:
+                        offer_desc = ", ".join(details)
+                        # Randomly add an ender (50% chance)
+                        if random.random() < 0.5:
+                            ender = random.choice(OPENING_OFFER_ENDERS)
+                            return f"{starter} {offer_desc}. {ender}"
+                        else:
+                            return f"{starter} {offer_desc}."
+
+        # Fallback without specific details
+        ender = random.choice(OPENING_OFFER_ENDERS)
+        return f"{starter} {ender}"

@@ -147,6 +147,8 @@ class MyNegotiator(OllamaNegotiator):
         temperature: float = 0.7,
         max_tokens: int = 1024,
         use_structured_output: bool = True,
+        timeout: float = 120.0,
+        num_retries: int = 3,
         **kwargs,
     ):
         """Initialize the MyNegotiator with Ollama.
@@ -160,16 +162,26 @@ class MyNegotiator(OllamaNegotiator):
                 Controls the length of generated responses.
             use_structured_output: If True, use structured output/JSON mode when supported (default: True).
                 Guarantees valid JSON responses from the LLM.
+            timeout: Timeout in seconds for LLM API calls (default: 120.0).
+                Increase this if you experience timeout issues with slower models.
+            num_retries: Number of retries for failed LLM API calls (default: 3).
+                Helps handle transient connection issues with Ollama.
             **kwargs: Additional arguments passed to OllamaNegotiator parent class.
                 May include: api_base (Ollama API URL), preferences (Preferences object),
                 ufun (utility function), name (negotiator name), can_propose (bool), etc.
                 Also supports prompt customization: system_prompt, preferences_prompt,
                 preferences_changed_prompt, negotiation_start_prompt, round_prompt.
         """
+        # Merge user-provided llm_kwargs with timeout/retry settings
+        llm_kwargs = kwargs.pop("llm_kwargs", {})
+        llm_kwargs.setdefault("timeout", timeout)
+        llm_kwargs.setdefault("num_retries", num_retries)
+
         super().__init__(
             temperature=temperature,
             max_tokens=max_tokens,
             use_structured_output=use_structured_output,
+            llm_kwargs=llm_kwargs,
             system_prompt=SYSTEM_PROMPT,
             preferences_prompt=PREFERENCES_PROMPT,
             preferences_changed_prompt=PREFERENCES_CHANGED_PROMPT,

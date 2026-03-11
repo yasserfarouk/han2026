@@ -233,10 +233,44 @@ def run(
     agent_name = agent.split(".")[-1]  # type: ignore
 
     m = SAOMechanism(n_steps=100, outcome_space=s.outcome_space)
-    m.add(
-        instantiate(opponent, ufun=s.ufuns[0], id=opp_name, name=opp_name),
-    )
-    m.add(instantiate(agent, ufun=s.ufuns[1], id=agent_name, name=agent_name))
+
+    # Prepare kwargs for negotiators (if they support verbose)
+    negotiator_kwargs = {}
+    if verbose:
+        negotiator_kwargs["verbose"] = True
+
+    # Try to add opponent with verbose, fall back without if not supported
+    try:
+        m.add(
+            instantiate(
+                opponent,
+                ufun=s.ufuns[0],
+                id=opp_name,
+                name=opp_name,
+                **negotiator_kwargs,
+            ),
+        )
+    except TypeError:
+        # Negotiator doesn't support verbose parameter
+        m.add(
+            instantiate(opponent, ufun=s.ufuns[0], id=opp_name, name=opp_name),
+        )
+
+    # Try to add agent with verbose, fall back without if not supported
+    try:
+        m.add(
+            instantiate(
+                agent,
+                ufun=s.ufuns[1],
+                id=agent_name,
+                name=agent_name,
+                **negotiator_kwargs,
+            )
+        )
+    except TypeError:
+        # Negotiator doesn't support verbose parameter
+        m.add(instantiate(agent, ufun=s.ufuns[1], id=agent_name, name=agent_name))
+
     m.run()
 
     # Get the trace dataframe
@@ -365,10 +399,10 @@ def gui(
 
     # Determine which command to use
     if use_dev:
-        cmd = ["hani", "--dev", "--agents", agents]
+        cmd = ["hani", "--dev", "--agents", agents, "--verbose"]
         print(f"[blue]Launching HANI in dev mode with agent: {agents}[/blue]")
     else:
-        cmd = ["hani-guest", "--agents", agents]
+        cmd = ["hani-guest", "--agents", agents, "--verbose"]
         print(f"[blue]Launching HANI Guest GUI with agent: {agents}[/blue]")
 
     print("[dim]This will open in your browser automatically...[/dim]\n")
