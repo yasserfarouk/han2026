@@ -489,12 +489,13 @@ class MyCustomAdapter(LLMMetaNegotiator):
         super().__init__(
             negotiator=BoulwareTBNegotiator(),
             system_prompt=SYSTEM_PROMPT,
-            model="llama3.2",           # Different model
             temperature=0.9,            # More creative responses
             max_tokens=512,             # Shorter responses
             **kwargs
         )
 ```
+
+> **Important:** For the HAN 2026 league, changing the LLM model is **not allowed**. All agents must use the default model (`qwen3:4b-instruct`). You may only customize prompts, temperature, and other parameters.
 
 #### Non-LLM Examples (`examples/nollm.py`)
 
