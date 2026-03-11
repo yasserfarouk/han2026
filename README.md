@@ -1,5 +1,14 @@
 # HAN 2026 Template Documentation
 
+
+This document provides a quick tutorial to get you started in developing your agent for the [HAN 2026 League](https://anac.cs.brown.edu/han).
+
+The participants are challenged to build a negotiation strategy that uses the alternating
+offers protocol (AOP) augmented with text input/output to effectively negotiate with human
+subjects. Strategies should be compatible with standard AOP but may use multi-modal
+communication to influence or inform the human negotiator. For more information check the
+[CFP](https://anac.cs.brown.edu/files/han/y2026/2026cfp.pdf) and the [Tutorial](https://anac.cs.brown.edu/files/han/y2026/template2026.pdf).
+
 A sample agent for the HAN 2026 competition built with [NegMAS](https://github.com/yasserfarouk/negmas) and [NegMAS-LLM](https://github.com/autoneg/negmas-llm). You can test your agent using the [HANI](https://github.com/autoneg/hani) interface.
 
 ## Quick Start
@@ -11,39 +20,40 @@ A sample agent for the HAN 2026 competition built with [NegMAS](https://github.c
 5. **Submit:** Zip and upload to the competition site ([details](#submission))
 
 > [!NOTE]
-> We **HIGHLY recommend** that you follow the whole process from installation to submission once you download this skeleton submitting the sample negotiator as your own submission to understand the whole process and save a lot of time later. The whole process should take no more than *5min* to try. If you face any issues in the submission you can email us [here](mailto:y.mohammad@nec.com)
+> We **HIGHLY recommend** that you follow the whole process from installation to submission once you download [the skeleton](https://anac.cs.brown.edu/files/han/y2026/han.zip) submitting the sample negotiator as your own submission to understand the whole process and save a lot of time later. The whole process should take no more than *5min* to try. If you face any issues in the submission you can email us [here](mailto:y.mohammad@nec.com)
 
 
 ## Table of Contents
 
 - [Quick Start](#quick-start)
 - [Project Structure](#project-structure)
-- [1. Installation](#1-installation)
+- [1. Registration and Download](#1-registration-and-download)
+- [2. Installation](#2-installation)
   - [Using uv (Recommended)](#using-uv-recommended)
   - [Using pip](#using-pip)
-- [2. Getting Started: Rename Your Agent](#2-getting-started-rename-your-agent)
+- [3. Getting Started: Rename Your Agent](#3-getting-started-rename-your-agent)
   - [VS Code](#vs-code)
   - [PyCharm](#pycharm)
   - [Vim/Neovim (with LSP)](#vimneovim-with-lsp)
   - [Manual Renaming (Any Editor)](#manual-renaming-any-editor)
-- [3. Implementing Your Agent](#3-implementing-your-agent)
+- [4. Implementing Your Agent](#4-implementing-your-agent)
   - [Example Agents](#example-agents)
-- [4. Customizing Your Agent](#4-customizing-your-agent)
+- [5. Customizing Your Agent](#5-customizing-your-agent)
   - [Modifying Prompts](#modifying-prompts)
   - [Using Tags in Prompts](#using-tags-in-prompts)
   - [Customizing Example Agents](#customizing-example-agents)
-- [5. Usage from the command line](#5-usage-from-the-command-line)
+- [6. Usage from the command line](#6-usage-from-the-command-line)
   - [Running a single negotiation](#running-a-single-negotiation)
   - [Running a tournament](#running-a-tournament)
   - [Testing with Human Negotiators (HANI GUI)](#testing-with-human-negotiators-hani-gui)
   - [Viewing Development and Submission Info](#viewing-development-and-submission-info)
   - [Viewing Available Prompt Tags](#viewing-available-prompt-tags)
-- [6. Development Workflows](#6-development-workflows)
+- [7. Development Workflows](#7-development-workflows)
   - [VS Code](#vs-code-1)
   - [Vim/Neovim](#vimneovim)
   - [PyCharm / Other IDEs](#pycharm--other-ides)
-- [7. Submission](#7-submission)
-- [8. Troubleshooting](#8-troubleshooting)
+- [8. Submission](#8-submission)
+- [9. Troubleshooting](#9-troubleshooting)
 
 ## Project Structure
 
@@ -68,7 +78,17 @@ A sample agent for the HAN 2026 competition built with [NegMAS](https://github.c
 └── README.md
 ```
 
-## 1. Installation
+## 1. Registration and Download
+
+Before you begin, register for the competition and download the skeleton:
+
+1. **Register** for the HAN 2026 competition at [https://anac.cs.brown.edu/register](https://anac.cs.brown.edu/register)
+
+2. **Download** the skeleton from [https://anac.cs.brown.edu/files/han/y2026/han.zip](https://anac.cs.brown.edu/files/han/y2026/han.zip)
+
+3. **Extract** the downloaded zip file to your preferred location
+
+## 2. Installation
 
 ### Using uv (Recommended)
 
@@ -113,7 +133,7 @@ pip install -e .
 pip install -e .
 ```
 
-## 2. Getting Started: Rename Your Agent
+## 3. Getting Started: Rename Your Agent
 
 Before you start developing, rename the agent module and class to match your submission name. This helps identify your agent in tournaments and is required for submission.
 
@@ -210,7 +230,7 @@ Before you start developing, rename the agent module and class to match your sub
    han2026 run
    ```
 
-## 3. Implementing Your Agent
+## 4. Implementing Your Agent
 
 Your agent is implemented in your renamed module file. See the example agents below for different approaches to building agents.
 
@@ -312,7 +332,7 @@ python -c "from negmas.registry import component_registry as CR; \
 > You can base your agent on any supported NegMAS negotiator (For some examples check [this](https://negmas.readthedocs.io/en/latest/negotiators.html) list. Other agents are available through [negmas-negobog](https://autoneg.github.io/negmas-negolog/) and [negmas-geniusweb-bridge](https://autoneg.github.io/negmas-geniusweb-bridge/)). You can explore available negotiators, their behavior, etc in the [NegMAS GUI](https://autoneg.github.io/negmas-app/).
 
 
-## 4. Customizing Your Agent
+## 5. Customizing Your Agent
 
 ### Modifying Prompts
 
@@ -575,7 +595,7 @@ For detailed tag documentation, use:
 han2026 tags <tag-name>
 ```
 
-## 5. Usage from the command line
+## 6. Usage from the command line
 
 > **Note:** All commands below work on Linux, macOS, and Windows. On Windows, use Command Prompt, PowerShell, or Windows Terminal.
 
@@ -786,7 +806,7 @@ han2026 tags outcome-space
 
 Tags can be used in custom prompts to dynamically insert negotiation context such as outcome space, utilities, negotiation history, and opponent information.
 
-## 6. Development Workflows
+## 7. Development Workflows
 
 ### VS Code
 
@@ -829,7 +849,7 @@ Tags can be used in custom prompts to dynamically insert negotiation context suc
    pytest
    ```
 
-## 7. Submission
+## 8. Submission
 
 <!-- SUBMISSION_START -->
 To submit your agent to the HAN 2026 competition:
@@ -916,7 +936,7 @@ You can submit your agent as many times as you want until the competition deadli
 
 <!-- SUBMISSION_END -->
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 ### HANI GUI Issues
 
