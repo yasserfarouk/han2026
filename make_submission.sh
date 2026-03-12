@@ -12,6 +12,7 @@ rm -f "$OUTPUT"
 # Create the zip file
 zip -r "$OUTPUT" . \
     -x "examples/*" \
+    -x "images/*" \
     -x "scenarios/*" \
     -x "report/*" \
     -x "tests/*" \

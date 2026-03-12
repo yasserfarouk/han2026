@@ -10,6 +10,7 @@ if exist %OUTPUT% del %OUTPUT%
 REM Create the zip file using tar (available on Windows 10+)
 tar -a -cf %OUTPUT% ^
     --exclude=examples ^
+    --exclude=images ^
     --exclude=scenarios ^
     --exclude=report ^
     --exclude=tests ^
