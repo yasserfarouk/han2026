@@ -707,7 +707,45 @@ To launch the GUI with your agent in guest mode (no authentication required):
 han2026 gui
 ```
 
-This will start the HANI interface in guest/playground mode with your default agent (`mynegotiator.MyNegotiator`). The GUI will open in your browser automatically at `http://localhost:5006`. You can then negotiate against your agent as a human player.
+This will start the HANI interface in guest/playground mode with your default agent (`mynegotiator.MyNegotiator`). The GUI will open in your browser automatically at `http://localhost:5008`. You can then negotiate against your agent as a human player.
+
+#### GUI Components
+
+The HANI interface is divided into several panels:
+
+**Left Panel - Scenario Information:**
+
+- **Scenario Info tab:** Displays the scenario name (e.g., "Groceries Distribution") and description explaining what you're negotiating about
+- **Negotiation Issues:** Lists all issues being negotiated with their value ranges (e.g., apple: 0-4, banana: 0-4, orange: 0-4)
+- **Preferences tab:** View your utility function and preferences
+- **User Results tab:** See your negotiation history and performance
+
+**Left Panel - Visualization (bottom):**
+
+- **Value Histogram:** Bar chart comparing offers from agent (AI) vs human (You) across different values
+- **Utility Plot:** Track utility values over the negotiation
+- **Outcome Plot:** Visualize the outcome space
+- **Trace:** View the full negotiation trace
+- **Progress bar:** Shows current step (e.g., "Step 3 of 100") and remaining time (e.g., "2m41s remaining")
+
+**Center Panel - Chat and Offers:**
+
+- **Message history:** Shows the conversation between you and the agent, with utility percentages displayed next to each offer
+- **Agent messages:** Displayed with a robot icon, showing both the text message and the formal offer (e.g., "You get nothing.")
+- **Your messages:** Displayed with a human icon on the right side
+- **Utility indicators:** Green percentages show how good each offer is for the respective party (e.g., "100.0%", "7.8%")
+
+**Right Panel - Offer Controls:**
+
+- **Issue dropdowns:** Select values for each issue in your offer (apple, banana, orange, watermelon, etc.)
+- **Extract Outcome button:** Parse an outcome from text using AI
+- **Generate Text button:** Generate a message to accompany your offer
+- **Your Utility display:** Shows what utility you'll get if your current offer is accepted
+- **Send offer button:** Submit your offer to the agent
+- **Offer helpers (top right):**
+  - **Random:** Generate a random offer
+  - **LLM:** Use an LLM to suggest an offer
+  - **Inverter:** Invert the current offer values
 
 #### Testing Different Agents
 
