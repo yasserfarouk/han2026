@@ -383,30 +383,82 @@ def gui(
         str,
         typer.Option(
             help=f"Agent class to use in GUI. Defaults to file:{MY_NEGOTIATOR}.",
-            rich_help_panel="GUI",
+            rich_help_panel="Agent",
         ),
     ] = f"file:{MY_NEGOTIATOR}",
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose/--no-verbose",
+            help="Enable verbose output for negotiators (if supported).",
+            rich_help_panel="Agent",
+        ),
+    ] = True,
     use_dev: Annotated[
         bool,
         typer.Option(
             "--use-dev",
             help="Use 'hani --dev' instead of 'hani-guest' (recommended if you get errors).",
-            rich_help_panel="GUI",
+            rich_help_panel="Mode",
+        ),
+    ] = False,
+    port: Annotated[
+        int,
+        typer.Option(
+            help="Port to run the server on.",
+            rich_help_panel="Server",
+        ),
+    ] = 5008,
+    address: Annotated[
+        str,
+        typer.Option(
+            help="Address to bind the server to.",
+            rich_help_panel="Server",
+        ),
+    ] = "localhost",
+    show: Annotated[
+        bool,
+        typer.Option(
+            "--show/--no-show",
+            help="Automatically open the app in a browser.",
+            rich_help_panel="Server",
+        ),
+    ] = True,
+    autoreload: Annotated[
+        bool,
+        typer.Option(
+            "--autoreload/--no-autoreload",
+            help="Automatically reload the server when source files change.",
+            rich_help_panel="Server",
         ),
     ] = False,
 ):
     """Launch the HAN GUI with specified agent in guest/dev mode (no authentication)."""
 
-    # Determine which command to use
-    # --show flag tells panel serve to open the browser automatically
+    # Build the command with all options
     if use_dev:
-        cmd = ["hani", "--dev", "--agents", agents, "--verbose", "--show"]
+        cmd = ["hani", "--dev", "--agents", agents]
         print(f"[blue]Launching HANI in dev mode with agent: {agents}[/blue]")
     else:
-        cmd = ["hani-guest", "--agents", agents, "--verbose", "--show"]
+        cmd = ["hani-guest", "--agents", agents]
         print(f"[blue]Launching HANI Guest GUI with agent: {agents}[/blue]")
 
-    print("[dim]Opening in your browser...[/dim]\n")
+    # Add verbose flag
+    if verbose:
+        cmd.append("--verbose")
+
+    # Add panel serve options (passed through to panel serve)
+    cmd.extend(["--port", str(port)])
+    cmd.extend(["--address", address])
+
+    if show:
+        cmd.append("--show")
+        print("[dim]Opening in your browser...[/dim]")
+
+    if autoreload:
+        cmd.append("--autoreload")
+
+    print(f"[dim]Server: http://{address}:{port}[/dim]\n")
 
     try:
         result = subprocess.run(
