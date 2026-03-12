@@ -398,14 +398,15 @@ def gui(
     """Launch the HAN GUI with specified agent in guest/dev mode (no authentication)."""
 
     # Determine which command to use
+    # --show flag tells panel serve to open the browser automatically
     if use_dev:
-        cmd = ["hani", "--dev", "--agents", agents, "--verbose"]
+        cmd = ["hani", "--dev", "--agents", agents, "--verbose", "--show"]
         print(f"[blue]Launching HANI in dev mode with agent: {agents}[/blue]")
     else:
-        cmd = ["hani-guest", "--agents", agents, "--verbose"]
+        cmd = ["hani-guest", "--agents", agents, "--verbose", "--show"]
         print(f"[blue]Launching HANI Guest GUI with agent: {agents}[/blue]")
 
-    print("[dim]This will open in your browser automatically...[/dim]\n")
+    print("[dim]Opening in your browser...[/dim]\n")
 
     try:
         result = subprocess.run(
@@ -428,17 +429,6 @@ def gui(
         raise typer.Exit(1)
     except FileNotFoundError:
         print(f"[red]Error: '{cmd[0]}' command not found.[/red]")
-        print("\n[yellow]Installation:[/yellow]")
-        print(
-            "  [green]uv pip install 'hani @ git+https://github.com/autoneg/hani.git@main'[/green]"
-        )
-        print("\n[yellow]Alternative:[/yellow]")
-        print(
-            f"  Use the main hani command: [green]hani --dev --agents {agents}[/green]"
-        )
-        raise typer.Exit(1)
-    except FileNotFoundError:
-        print("[red]Error: 'hani-guest' command not found.[/red]")
         print("\n[yellow]Installation:[/yellow]")
         print(
             "  [green]uv pip install 'hani @ git+https://github.com/autoneg/hani.git@main'[/green]"
