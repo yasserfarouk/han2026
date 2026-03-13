@@ -66,13 +66,9 @@ The [Official HAN 2026 Template](https://anac.cs.brown.edu/files/han/y2026/han.z
 │   ├── nollm_adapter.py   # Template-based adapter that wraps existing negotiators
 │   └── nollm.py           # Non-LLM negotiators (BOA and simple SAO)
 ├── scenarios/             # Negotiation scenarios
-│   ├── Amsterdam/
-│   ├── Camera/
-│   ├── Car/
 │   ├── Grocery/
-│   ├── ISBTAcquisition/
-│   ├── Laptop/
-│   └── NiceOrDie/
+│   ├── Island/
+│   └── Trade/
 ├── main.py                # CLI application entry point
 ├── mynegotiator.py        # Your agent implementation (RENAME & EDIT THIS!)
 ├── pyproject.toml         # Project configuration
@@ -628,7 +624,7 @@ This will run your agent against a random opponent on a random scenario and repo
 Examples:
 ```bash
 # Run with a specific scenario
-han2026 run --scenario Camera
+han2026 run --scenario Grocery
 
 # Run with a generated scenario
 han2026 run --generate-scenario
@@ -670,7 +666,7 @@ Examples:
 
 ```bash
 # Run tournament on specific scenarios
-han2026 tournament --scenario Camera --scenario Car
+han2026 tournament --scenario Grocery --scenario Island
 
 # Run tournament with generated scenarios
 han2026 tournament --generate-scenarios 10
@@ -814,7 +810,7 @@ The HANI interface provides:
 
 #### Tips for Testing
 
-1. **Start simple:** Test with straightforward scenarios like `Camera` or `Laptop` first
+1. **Start simple:** Test with straightforward scenarios like `Grocery` or `Trade` first
 2. **Observe patterns:** Watch how your agent responds to different offer sequences
 3. **Test edge cases:** Try extreme offers, quick acceptance, or delayed responses
 4. **Check messages:** Ensure your agent's text is appropriate and persuasive
