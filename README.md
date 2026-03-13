@@ -9,7 +9,8 @@ subjects. Strategies should be compatible with standard AOP but may use multi-mo
 communication to influence or inform the human negotiator. For more information check the
 [CFP](https://anac.cs.brown.edu/files/han/y2026/2026cfp.pdf) and the [Tutorial](https://anac.cs.brown.edu/files/han/y2026/template2026.pdf).
 
-A sample agent for the HAN 2026 competition built with [NegMAS](https://github.com/yasserfarouk/negmas) and [NegMAS-LLM](https://github.com/autoneg/negmas-llm). You can test your agent using the [HANI](https://github.com/autoneg/hani) interface.
+The [Official HAN 2026 Template](https://anac.cs.brown.edu/files/han/y2026/han.zip)  contains multiple examples of agent implementations for the HAN 2026 competition built with [NegMAS](https://github.com/yasserfarouk/negmas) and [NegMAS-LLM](https://github.com/autoneg/negmas-llm). You can test your agent using the [HANI](https://github.com/autoneg/hani) interface.
+
 
 ## Quick Start
 
