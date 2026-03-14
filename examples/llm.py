@@ -8,7 +8,7 @@ class HAN2026LLMNegotiator(OllamaNegotiator):
     def __init__(
         self,
         temperature: float = 0.7,
-        max_tokens: int = 1024,
+        max_tokens: int = 10240,
         use_structured_output: bool = True,
         include_reasoning: bool = False,
         system_prompt: str | None = None,

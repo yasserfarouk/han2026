@@ -1,4 +1,4 @@
-# HAN 2026 Template Documentation
+# HAN 2026 Tutorial
 
 
 This document provides a quick tutorial to get you started in developing your agent for the [HAN 2026 League](https://anac.cs.brown.edu/han).
