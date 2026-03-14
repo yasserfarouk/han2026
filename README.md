@@ -891,7 +891,7 @@ Tags can be used in custom prompts to dynamically insert negotiation context suc
 <!-- SUBMISSION_START -->
 To submit your agent to the HAN 2026 competition:
 
-1. Ensure your renamed your agent and followed the instruction for development and have a runnable agent. To test that you have a runnable agent, use:
+1. Ensure you renamed your agent and followed the instruction for development and have a runnable agent. To test that you have a runnable agent, use:
 
   ```bash
   han2026 run
@@ -954,12 +954,12 @@ and
 
    5.3. Go to your home page "Your Home" and choose "Submissions"
 
-   5.4. Under "HAN", click "New Agent" and fill the form. We will assume that your main agent class is called `AwsomeNegotiator` implemented in a file called `awsome.py` at the root of this folder:
+   5.4. Under "HAN", click "New Agent" and fill the form. We will assume that your main agent class is called `AwesomeNegotiator` implemented in a file called `awesome.py` at the root of this folder:
 
-     - Agent Name: Awsome Negotiator
-     - Agent Alias: Awsome Negotiator
-     - Agent Module: awsome
-     - Agent Class: AwsomeNegotiator
+     - Agent Name: Awesome Negotiator
+     - Agent Alias: Awesome Negotiator
+     - Agent Module: awesome
+     - Agent Class: AwesomeNegotiator
      - Dependencies: <any dependencies you had to `pip install` or `uv add` yourself in a semicolon-separated list, no spaces>
      - Code: submission.zip
      - Requirements File: requirements.txt
