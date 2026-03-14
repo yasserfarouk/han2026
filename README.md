@@ -1022,7 +1022,7 @@ hani --dev --agents mynegotiator.MyNegotiator
 
 3. **Browser doesn't open:**
 
-   - Manually navigate to `http://localhost:5006`
+   - Manually navigate to `http://localhost:5008`
 
 4. **Agent import errors:**
 
