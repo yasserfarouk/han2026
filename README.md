@@ -130,6 +130,50 @@ pip install -e .
 pip install -e .
 ```
 
+### Setting Up Ollama (Required for LLM Agents)
+
+LLM-based agents require [Ollama](https://ollama.com/) to run the language model locally. Follow these steps to set it up:
+
+**1. Install Ollama:**
+
+- **Linux:**
+  ```bash
+  curl -fsSL https://ollama.com/install.sh | sh
+  ```
+
+- **macOS:**
+  Download and install from [https://ollama.com/download](https://ollama.com/download), or use Homebrew:
+  ```bash
+  brew install ollama
+  ```
+
+- **Windows:**
+  Download and install from [https://ollama.com/download](https://ollama.com/download)
+
+**2. Start the Ollama service:**
+
+```bash
+ollama serve
+```
+
+> **Note:** On macOS and Windows, Ollama typically runs automatically after installation. On Linux, you may need to start the service manually.
+
+**3. Pull the required model:**
+
+The HAN 2026 competition requires the `qwen3:4b-instruct` model. Pull it before running LLM-based agents:
+
+```bash
+ollama pull qwen3:4b-instruct
+```
+
+This download is approximately 2-3 GB. You can verify the model is installed with:
+
+```bash
+ollama list
+```
+
+> **Important:** The model does not auto-download when running agents. You must pull it manually before testing LLM-based negotiators.
+
 ## 3. Getting Started: Rename Your Agent
 
 Before you start developing, rename the agent module and class to match your submission name. This helps identify your agent in tournaments and is required for submission.
@@ -241,7 +285,7 @@ A **pure LLM negotiator** that handles all negotiation decisions directly throug
 
 - **Standalone:** No base negotiator - the LLM handles everything
 - **Customizable:** All prompts can be overridden via constructor parameters
-- **Model:** Uses `qwen3:4b-instruct` by default (configurable)
+- **Model:** Uses `qwen3:4b-instruct` (required for HAN 2026; only hyperparameters like temperature are configurable)
 
 This is useful when you want the LLM to have full control over negotiation strategy and don't need a traditional negotiator as a fallback.
 
