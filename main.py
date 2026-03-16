@@ -16,6 +16,9 @@ from negmas.sao import SAOMechanism
 from negmas.tournaments.neg.simple import cartesian_tournament
 from negmas_llm.tags import get_available_tags, get_tag_documentation
 from negmas_llm.common import DEFAULT_MODELS
+from hani.scenarios.trade import make_trade_scenario
+from hani.scenarios.island import make_island_scenario
+from hani.scenarios.grocery import make_grocery_scenario
 from rich import print
 from rich.console import Console
 from rich.markdown import Markdown
@@ -25,6 +28,13 @@ from typing import Annotated
 
 app = typer.Typer(help="ANL2026 CLI application")
 DEFAULT_OLLAMA_MODEL = DEFAULT_MODELS["ollama"]
+
+# HANI scenario makers for generating domain-specific scenarios
+HANI_SCENARIO_MAKERS = {
+    "trade": make_trade_scenario,
+    "island": make_island_scenario,
+    "grocery": make_grocery_scenario,
+}
 # Default negotiator path used throughout the application
 MY_NEGOTIATOR = "mynegotiator.MyNegotiator"
 
@@ -132,15 +142,14 @@ def run(
             rich_help_panel="Scenario Generation",
         ),
     ] = False,
-    rational_fraction: Annotated[
-        float,
+    scenario_type: Annotated[
+        str | None,
         typer.Option(
-            help="Fraction of rational outcomes in generated scenarios (0.0-1.0).",
-            min=0.0,
-            max=1.0,
+            "--scenario-type",
+            help="Generate a specific scenario type (trade, island, grocery). Implies --generate-scenario.",
             rich_help_panel="Scenario Generation",
         ),
-    ] = 1.0,
+    ] = None,
     # Negotiation Options
     agent: Annotated[
         str | None,
@@ -195,11 +204,22 @@ def run(
     ] = True,
 ):
     """Run a single negotiation against an opponent."""
-    if generate:
-        s = generate_random_scenarios(
-            n_scenarios=1, rational_fraction=rational_fraction
-        )[0]
-        print("[blue]Using randomly generated scenario[/blue]")
+    # Handle scenario type generation (implies --generate-scenario)
+    if scenario_type or generate:
+        if scenario_type:
+            scenario_type_lower = scenario_type.lower()
+            if scenario_type_lower not in HANI_SCENARIO_MAKERS:
+                print(
+                    f"[red]Unknown scenario type: {scenario_type}. "
+                    f"Available types: {', '.join(HANI_SCENARIO_MAKERS.keys())}[/red]"
+                )
+                raise typer.Exit(1)
+        else:
+            # Randomly select a scenario type
+            scenario_type_lower = random.choice(list(HANI_SCENARIO_MAKERS.keys()))
+        maker = HANI_SCENARIO_MAKERS[scenario_type_lower]
+        s = maker(index=random.randint(0, 9999))
+        print(f"[blue]Generated {scenario_type_lower} scenario[/blue]")
     elif scenario is None:
         scenario = random.choice(
             list((Path(__file__).parent / "scenarios").iterdir())
@@ -559,15 +579,14 @@ def tournament(
             rich_help_panel="Scenario Generation",
         ),
     ] = 0,
-    rational_fraction: Annotated[
-        float,
+    scenario_type: Annotated[
+        str | None,
         typer.Option(
-            help="Fraction of rational outcomes in generated scenarios (0.0-1.0).",
-            min=0.0,
-            max=1.0,
+            "--scenario-type",
+            help="Generate scenarios of a specific type (trade, island, grocery). Used with --generate-scenarios.",
             rich_help_panel="Scenario Generation",
         ),
-    ] = 1.0,
+    ] = None,
     # Execution Options
     verbosity: Annotated[
         int,
@@ -614,11 +633,26 @@ def tournament(
 
     # Add generated scenarios if requested
     if generate > 0:
-        generated = generate_random_scenarios(
-            n_scenarios=generate, rational_fraction=rational_fraction
-        )
+        if scenario_type:
+            scenario_type_lower = scenario_type.lower()
+            if scenario_type_lower not in HANI_SCENARIO_MAKERS:
+                print(
+                    f"[red]Unknown scenario type: {scenario_type}. "
+                    f"Available types: {', '.join(HANI_SCENARIO_MAKERS.keys())}[/red]"
+                )
+                raise typer.Exit(1)
+            maker = HANI_SCENARIO_MAKERS[scenario_type_lower]
+            generated = [maker(index=i) for i in range(generate)]
+            print(f"[blue]Generated {generate} {scenario_type_lower} scenarios[/blue]")
+        else:
+            # Generate scenarios with randomly selected types
+            generated = []
+            for i in range(generate):
+                scenario_type_lower = random.choice(list(HANI_SCENARIO_MAKERS.keys()))
+                maker = HANI_SCENARIO_MAKERS[scenario_type_lower]
+                generated.append(maker(index=i))
+            print(f"[blue]Generated {generate} scenarios (mixed types)[/blue]")
         scenarios.extend(generated)
-        print(f"[blue]Generated {generate} random scenarios[/blue]")
 
     print(f"[blue]Running tournament with {len(scenarios)} scenarios[/blue]")
     competitor_classes = [get_class(c) for c in competitor]
