@@ -233,6 +233,16 @@ def run(
     opp_name = opponent.split(".")[-1]  # type: ignore
     agent_name = agent.split(".")[-1]  # type: ignore
 
+    # Check if any LLM-based negotiators are involved and warn about duration
+    llm_keywords = ["llm", "LLM", "Llm"]
+    has_llm = any(any(kw in n for kw in llm_keywords) for n in [agent, opponent])
+    if has_llm:
+        print(
+            "[yellow bold]Warning:[/yellow bold] [yellow]LLM-based negotiators detected. "
+            "The negotiation may take a minute or more to complete, "
+            "depending on the LLM inference speed.[/yellow]"
+        )
+
     m = SAOMechanism(n_steps=100, outcome_space=s.outcome_space)
 
     # Prepare kwargs for negotiators (if they support verbose)
@@ -581,6 +591,17 @@ def tournament(
         name = unique_name("anl", sep="")
     if competitor is None:
         competitor = ALL_COMPETITORS
+
+    # Check if any LLM-based negotiators are involved and warn about duration
+    llm_keywords = ["llm", "LLM", "Llm"]
+    has_llm = any(any(kw in c for kw in llm_keywords) for c in competitor)
+    if has_llm:
+        print(
+            "[yellow bold]Warning:[/yellow bold] [yellow]LLM-based negotiators detected. "
+            "The tournament may take several minutes (or longer) to complete, "
+            "depending on the number of scenarios and the LLM inference speed.[/yellow]"
+        )
+
     path = Path.home() / "negmas" / "anl2026" / "tournaments" / name
 
     # Load scenarios from paths if provided, otherwise load all from scenarios directory
