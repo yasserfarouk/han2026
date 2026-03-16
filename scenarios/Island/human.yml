@@ -3,36 +3,36 @@ reserved_value: 0.0
 type: LinearAdditiveUtilityFunction
 values:
 - mapping:
-    alice: 1.0
-    bob: 0.0
+    alice: 0.0
+    bob: 1.0
   type: TableFun
 - mapping:
-    alice: 1.0
-    bob: 0.0
+    alice: 0.0
+    bob: 1.0
   type: TableFun
 - mapping:
-    alice: 1.0
-    bob: 0.0
+    alice: 0.0
+    bob: 1.0
   type: TableFun
 - mapping:
-    alice: 1.0
-    bob: 0.0
+    alice: 0.0
+    bob: 1.0
   type: TableFun
 - mapping:
-    alice: 1.0
-    bob: 0.0
+    alice: 0.0
+    bob: 1.0
   type: TableFun
 - mapping:
-    alice: 1.0
-    bob: 0.0
+    alice: 0.0
+    bob: 1.0
   type: TableFun
 - mapping:
-    alice: 1.0
-    bob: 0.0
+    alice: 0.0
+    bob: 1.0
   type: TableFun
 - mapping:
-    alice: 1.0
-    bob: 0.0
+    alice: 0.0
+    bob: 1.0
   type: TableFun
 weights:
 - 5
