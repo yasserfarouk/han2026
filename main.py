@@ -665,6 +665,7 @@ def tournament(
         njobs=-1 if not parallel else 0,
         progress_callback=progress_callback,
         sort_runs=True,
+        raise_exceptions=False,
     )
     print(results.final_scores)
     print(f"All Tournament Results can be found in {path}")
