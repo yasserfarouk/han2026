@@ -604,7 +604,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "hani", specifier = ">=0.1.0" },
     { name = "hani", git = "https://github.com/autoneg/hani.git?rev=main" },
     { name = "negmas", git = "https://github.com/yasserfarouk/negmas.git?rev=main" },
     { name = "negmas-llm", git = "https://github.com/autoneg/negmas-llm.git?rev=main" },

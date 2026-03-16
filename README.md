@@ -15,10 +15,12 @@ The [Official HAN 2026 Template](https://anac.cs.brown.edu/files/han/y2026/han.z
 ## Quick Start
 
 1. **Install dependencies:** `uv sync` ([details](#installation))
-2. **Rename your agent:** Change `mynegotiator.py` to `your_agent.py` and `MyNegotiator` to `YourAgent` ([details](#getting-started-rename-your-agent))
-3. **Implement your agent:** Edit your renamed file ([details](#implementing-your-agent), [examples](#example-agents))
-4. **Test locally:** Run `han2026 run` for agent-vs-agent testing and `han2026 gui` for human-vs-agent testing ([details](#usage-from-the-command-line))
-5. **Submit:** Zip and upload to the competition site ([details](#submission))
+2. **Set up Ollama (for LLM agents):** `han2026 setup-ollama` ([details](#setting-up-ollama-for-llm-agents))
+   > Only needed if you plan to use LLM-based agents or want to try the LLM examples
+3. **Rename your agent:** Change `mynegotiator.py` to `your_agent.py` and `MyNegotiator` to `YourAgent` ([details](#getting-started-rename-your-agent))
+4. **Implement your agent:** Edit your renamed file ([details](#implementing-your-agent), [examples](#example-agents))
+5. **Test locally:** Run `han2026 run` for agent-vs-agent testing and `han2026 gui` for human-vs-agent testing ([details](#usage-from-the-command-line))
+6. **Submit:** Zip and upload to the competition site ([details](#submission))
 
 > [!NOTE]
 > We **HIGHLY recommend** that you follow the whole process from installation to submission once you download [the skeleton](https://anac.cs.brown.edu/files/han/y2026/han.zip) submitting the sample negotiator as your own submission to understand the whole process and save a lot of time later. The whole process should take no more than *5min* to try. If you face any issues in the submission you can email us [here](mailto:y.mohammad@nec.com)
@@ -32,6 +34,7 @@ The [Official HAN 2026 Template](https://anac.cs.brown.edu/files/han/y2026/han.z
 - [2. Installation](#2-installation)
   - [Using uv (Recommended)](#using-uv-recommended)
   - [Using pip](#using-pip)
+  - [Setting Up Ollama (for LLM Agents)](#setting-up-ollama-for-llm-agents)
 - [3. Getting Started: Rename Your Agent](#3-getting-started-rename-your-agent)
   - [VS Code](#vs-code)
   - [PyCharm](#pycharm)
@@ -55,6 +58,8 @@ The [Official HAN 2026 Template](https://anac.cs.brown.edu/files/han/y2026/han.z
   - [PyCharm / Other IDEs](#pycharm--other-ides)
 - [8. Submission](#8-submission)
 - [9. Troubleshooting](#9-troubleshooting)
+  - [HANI GUI Issues](#hani-gui-issues)
+  - [Manual Ollama Installation](#manual-ollama-installation)
 
 ## Project Structure
 
@@ -130,49 +135,21 @@ pip install -e .
 pip install -e .
 ```
 
-### Setting Up Ollama (Required for LLM Agents)
+### Setting Up Ollama (for LLM Agents)
 
-LLM-based agents require [Ollama](https://ollama.com/) to run the language model locally. Follow these steps to set it up:
-
-**1. Install Ollama:**
-
-- **Linux:**
-  ```bash
-  curl -fsSL https://ollama.com/install.sh | sh
-  ```
-
-- **macOS:**
-  Download and install from [https://ollama.com/download](https://ollama.com/download), or use Homebrew:
-  ```bash
-  brew install ollama
-  ```
-
-- **Windows:**
-  Download and install from [https://ollama.com/download](https://ollama.com/download)
-
-**2. Start the Ollama service:**
+If you plan to use LLM-based agents or want to try the LLM examples, you need to install [Ollama](https://ollama.com/) and pull the required model. Run:
 
 ```bash
-ollama serve
+han2026 setup-ollama
 ```
 
-> **Note:** On macOS and Windows, Ollama typically runs automatically after installation. On Linux, you may need to start the service manually.
+This command will:
 
-**3. Pull the required model:**
+1. Install Ollama (platform-specific)
+2. Start the Ollama service if needed
+3. Pull the required `qwen3:4b-instruct` model (~2-3 GB download)
 
-The HAN 2026 competition requires the `qwen3:4b-instruct` model. Pull it before running LLM-based agents:
-
-```bash
-ollama pull qwen3:4b-instruct
-```
-
-This download is approximately 2-3 GB. You can verify the model is installed with:
-
-```bash
-ollama list
-```
-
-> **Important:** The model does not auto-download when running agents. You must pull it manually before testing LLM-based negotiators.
+> **Note:** If the automatic installation fails, see [Manual Ollama Installation](#manual-ollama-installation) in the Troubleshooting section.
 
 ## 3. Getting Started: Rename Your Agent
 
@@ -1073,3 +1050,61 @@ hani --dev --agents mynegotiator.MyNegotiator
    - Make sure your agent module is importable
    - Check for syntax errors, missing dependencies, etc.
    - Verify your agent works with: `han2026 run`
+
+### Manual Ollama Installation
+
+If `han2026 setup-ollama` fails or you prefer to install manually, follow these steps:
+
+**1. Install Ollama:**
+
+- **Linux:**
+  ```bash
+  curl -fsSL https://ollama.com/install.sh | sh
+  ```
+
+- **macOS:**
+  Download and install from [https://ollama.com/download](https://ollama.com/download), or use Homebrew:
+  ```bash
+  brew install ollama
+  ```
+
+- **Windows:**
+  Download and install from [https://ollama.com/download](https://ollama.com/download)
+
+**2. Start the Ollama service:**
+
+```bash
+ollama serve
+```
+
+> **Note:** On macOS and Windows, Ollama typically runs automatically after installation. On Linux, you may need to start the service manually.
+
+**3. Pull the required model:**
+
+The HAN 2026 competition requires the `qwen3:4b-instruct` model. Pull it before running LLM-based agents:
+
+```bash
+ollama pull qwen3:4b-instruct
+```
+
+This download is approximately 2-3 GB. You can verify the model is installed with:
+
+```bash
+ollama list
+```
+
+> **Important:** The model does not auto-download when running agents. You must pull it manually before testing LLM-based negotiators.
+
+**Common Ollama issues:**
+
+1. **"Connection refused" errors:**
+   - The Ollama service may not be running
+   - Start it with: `ollama serve`
+
+2. **Model not found:**
+   - Ensure you pulled the correct model: `ollama pull qwen3:4b-instruct`
+   - Check installed models: `ollama list`
+
+3. **Slow responses:**
+   - The model runs locally and performance depends on your hardware
+   - First request may be slow as the model loads into memory

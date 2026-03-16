@@ -15,6 +15,7 @@ from negmas.preferences.generators import generate_multi_issue_ufuns
 from negmas.sao import SAOMechanism
 from negmas.tournaments.neg.simple import cartesian_tournament
 from negmas_llm.tags import get_available_tags, get_tag_documentation
+from negmas_llm.common import DEFAULT_MODELS
 from rich import print
 from rich.console import Console
 from rich.markdown import Markdown
@@ -23,7 +24,7 @@ import typer
 from typing import Annotated
 
 app = typer.Typer(help="ANL2026 CLI application")
-
+DEFAULT_OLLAMA_MODEL = DEFAULT_MODELS["ollama"]
 # Default negotiator path used throughout the application
 MY_NEGOTIATOR = "mynegotiator.MyNegotiator"
 
@@ -467,7 +468,7 @@ def gui(
             capture_output=False,
         )
         print("\n[green]HANI GUI closed successfully[/green]")
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         print("\n[red]Error running HANI.[/red]")
         if not use_dev:
             print(
@@ -746,6 +747,213 @@ def tags(
             "\n[dim]To see detailed documentation for any tag, run:[/dim] [cyan]han2026 tags <tag-name>[/cyan]"
         )
         console.print("[dim]Example:[/dim] [cyan]han2026 tags utility[/cyan]\n")
+
+
+@app.command()
+def setup_ollama():
+    f"""Install Ollama and pull the required {DEFAULT_OLLAMA_MODEL} model.
+
+    This command will:
+    1. Check if Ollama is already installed
+    2. Install Ollama if needed (platform-specific)
+    3. Pull the {DEFAULT_OLLAMA_MODEL} model required for HAN 2026
+
+    Note: On Linux, this requires curl. On macOS, this uses the official installer.
+    On Windows, this will open the download page for manual installation.
+    """
+    console = Console()
+    import shutil
+    import platform
+
+    system = platform.system().lower()
+
+    # Check if ollama is already installed
+    ollama_path = shutil.which("ollama")
+
+    if ollama_path:
+        console.print(f"[green]Ollama is already installed at: {ollama_path}[/green]")
+    else:
+        console.print("[yellow]Ollama not found. Installing...[/yellow]")
+
+        if system == "linux":
+            console.print("[blue]Installing Ollama on Linux...[/blue]")
+            try:
+                result = subprocess.run(
+                    ["curl", "-fsSL", "https://ollama.com/install.sh"],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
+                # Pipe to sh
+                subprocess.run(
+                    ["sh"],
+                    input=result.stdout,
+                    text=True,
+                    check=True,
+                )
+                console.print("[green]Ollama installed successfully![/green]")
+            except subprocess.CalledProcessError as e:
+                console.print(f"[red]Failed to install Ollama: {e}[/red]")
+                console.print(
+                    "[yellow]Please install manually: curl -fsSL https://ollama.com/install.sh | sh[/yellow]"
+                )
+                raise typer.Exit(1)
+            except FileNotFoundError:
+                console.print("[red]curl not found. Please install curl first.[/red]")
+                console.print(
+                    "[yellow]On Ubuntu/Debian: sudo apt install curl[/yellow]"
+                )
+                raise typer.Exit(1)
+
+        elif system == "darwin":
+            console.print("[blue]Installing Ollama on macOS...[/blue]")
+            # Check if brew is available
+            brew_path = shutil.which("brew")
+            if brew_path:
+                console.print("[dim]Using Homebrew to install Ollama...[/dim]")
+                try:
+                    subprocess.run(["brew", "install", "ollama"], check=True)
+                    console.print("[green]Ollama installed successfully![/green]")
+                except subprocess.CalledProcessError as e:
+                    console.print(f"[red]Failed to install via Homebrew: {e}[/red]")
+                    console.print(
+                        "[yellow]Please download from: https://ollama.com/download[/yellow]"
+                    )
+                    raise typer.Exit(1)
+            else:
+                console.print(
+                    "[yellow]Homebrew not found. Opening download page...[/yellow]"
+                )
+                webbrowser.open("https://ollama.com/download")
+                console.print(
+                    "[yellow]Please download and install Ollama from the opened page,[/yellow]"
+                )
+                console.print(
+                    "[yellow]then run this command again to pull the model.[/yellow]"
+                )
+                raise typer.Exit(0)
+
+        elif system == "windows":
+            console.print("[blue]Opening Ollama download page for Windows...[/blue]")
+            webbrowser.open("https://ollama.com/download")
+            console.print(
+                "[yellow]Please download and install Ollama from the opened page,[/yellow]"
+            )
+            console.print(
+                "[yellow]then run this command again to pull the model.[/yellow]"
+            )
+            raise typer.Exit(0)
+
+        else:
+            console.print(f"[red]Unsupported platform: {system}[/red]")
+            console.print(
+                "[yellow]Please install Ollama manually from: https://ollama.com/download[/yellow]"
+            )
+            raise typer.Exit(1)
+
+    # Verify ollama is now available
+    ollama_path = shutil.which("ollama")
+    if not ollama_path:
+        console.print(
+            "[red]Ollama installation completed but 'ollama' command not found.[/red]"
+        )
+        console.print(
+            "[yellow]You may need to restart your terminal or shell and run the 'setup-ollama' again.[/yellow]"
+        )
+        raise typer.Exit(1)
+
+    # Check if ollama service is running, start if needed
+    console.print("\n[blue]Checking Ollama service...[/blue]")
+    try:
+        # Try to list models to see if service is running
+        result = subprocess.run(
+            ["ollama", "list"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if result.returncode != 0:
+            console.print("[yellow]Ollama service not running. Starting...[/yellow]")
+            # Start ollama serve in background
+            if system == "windows":
+                subprocess.Popen(
+                    ["ollama", "serve"],
+                    creationflags=0x00000010,  # CREATE_NEW_CONSOLE
+                )
+            else:
+                subprocess.Popen(
+                    ["ollama", "serve"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    start_new_session=True,
+                )
+            console.print("[dim]Waiting for service to start...[/dim]")
+            import time
+
+            time.sleep(3)
+    except subprocess.TimeoutExpired:
+        console.print(
+            "[yellow]Ollama service may not be running. Attempting to start...[/yellow]"
+        )
+        if system == "windows":
+            subprocess.Popen(
+                ["ollama", "serve"],
+                creationflags=0x00000010,  # CREATE_NEW_CONSOLE
+            )
+        else:
+            subprocess.Popen(
+                ["ollama", "serve"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+        import time
+
+        time.sleep(3)
+    except FileNotFoundError:
+        console.print("[red]Ollama command not found after installation.[/red]")
+        raise typer.Exit(1)
+
+    # Pull the required model
+    model_name = DEFAULT_OLLAMA_MODEL
+    console.print(f"\n[blue]Pulling required model: {model_name}[/blue]")
+    console.print("[dim]This may take a few minutes (2-3 GB download)...[/dim]\n")
+
+    try:
+        result = subprocess.run(
+            ["ollama", "pull", model_name],
+            check=True,
+        )
+        console.print(f"\n[green]Successfully pulled {model_name}![/green]")
+    except subprocess.CalledProcessError as e:
+        console.print(f"\n[red]Failed to pull model: {e}[/red]")
+        console.print(f"[yellow]Try manually: ollama pull {model_name}[/yellow]")
+        raise typer.Exit(1)
+
+    # Verify the model is available
+    console.print("\n[blue]Verifying installation...[/blue]")
+    try:
+        result = subprocess.run(
+            ["ollama", "list"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        if model_name.split(":")[0] in result.stdout:
+            console.print(f"[green]Model {model_name} is ready to use![/green]")
+            console.print(
+                "\n[bold green]Setup complete![/bold green] You can now run LLM-based agents with:"
+            )
+            console.print("  [cyan]han2026 run[/cyan]")
+            console.print("  [cyan]han2026 gui[/cyan]")
+        else:
+            console.print(
+                "[yellow]Model pulled but not showing in list. It may still be processing.[/yellow]"
+            )
+    except subprocess.CalledProcessError:
+        console.print(
+            "[yellow]Could not verify model installation. Check the troubleshooting section in the tutorial: https://anac.cs.brown.edu/files/han/y2026/template2026.pdf[/yellow]"
+        )
 
 
 if __name__ == "__main__":
