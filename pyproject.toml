@@ -7,7 +7,7 @@ requires-python = ">=3.14"
 dependencies = [
     "negmas>=0.15.2",
     "negmas-llm>=0.4.2",
-    "hani>=0.2.2",
+    "hani>=0.3.0",
     "typer>=0.15.0",
     # For unstable development versions, comment out the above and use:
     # "negmas @ git+https://github.com/yasserfarouk/negmas.git@main",
