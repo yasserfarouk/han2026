@@ -620,7 +620,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "hani", specifier = ">=0.2.2" },
+    { name = "hani", specifier = ">=0.3.0" },
     { name = "negmas", specifier = ">=0.15.2" },
     { name = "negmas-llm", specifier = ">=0.4.2" },
     { name = "typer", specifier = ">=0.15.0" },
@@ -634,7 +634,7 @@ dev = [
 
 [[package]]
 name = "hani"
-version = "0.2.2"
+version = "0.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cryptography" },
@@ -643,14 +643,13 @@ dependencies = [
     { name = "negmas-llm" },
     { name = "panel" },
     { name = "plotly" },
-    { name = "python-dotenv" },
     { name = "rich" },
     { name = "sqlalchemy" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e3/23/d0a6bcc2a9ed037e9398ee6b352887325607341fa380794cd92034652a92/hani-0.2.2.tar.gz", hash = "sha256:268e9b2407f0a32106b12a84f486aa585b4ec27cac913995d045322e81489d8a", size = 1439768, upload-time = "2026-03-16T02:30:35.382Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f8/b9/5075db349e7d0dd9bf7f698ab2c62baae393bd8ab45f3695809492b226c2/hani-0.3.0.tar.gz", hash = "sha256:5c6cdbb91b89fc1b0fdedaad274fd10d0343e2c9bf9a9887f9ada0d9104e3573", size = 1454961, upload-time = "2026-03-16T14:16:57.774Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/db/af/c3a80dc4dcbcee5c61e1c4362996ce1ed02ba6f7a3e92f32cb273b735a28/hani-0.2.2-py3-none-any.whl", hash = "sha256:0e732e22c22f4aedff4690c10eedc30723a609a58cd95ba1175e5c79bd7fa152", size = 1443562, upload-time = "2026-03-16T02:30:33.852Z" },
+    { url = "https://files.pythonhosted.org/packages/7a/9d/72efe0cbe135bc12b15ca14352753a81ad5affb7bb4bd7c98ea01f9a32c4/hani-0.3.0-py3-none-any.whl", hash = "sha256:32151678a9b6b1ebe2bb8ce009ac58fb30f62dea822780fd4fd9e6d32400ec2c", size = 1459272, upload-time = "2026-03-16T14:16:56.231Z" },
 ]
 
 [[package]]
