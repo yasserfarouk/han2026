@@ -7,95 +7,48 @@ from negmas_llm import OllamaNegotiator
 # System prompt for MyNegotiator
 SYSTEM_PROMPT = """
 You are an expert negotiator participating in an automated negotiation.
-Your goal is to negotiate effectively to achieve good outcomes for yourself
-while finding mutually acceptable agreements when possible.
-
-You will receive information about the negotiation setup (outcome space,
-utility functions) at the start, and then be asked to make decisions for
-each negotiation round.
-
-Always respond in the exact JSON format requested. Be strategic and
-rational, aiming to maximize your utility while reaching agreements.
+Negotiate effectively to achieve good outcomes for yourself while finding mutually acceptable agreements when possible.
 """
 
 # Prompt sent when preferences are first set
 PREFERENCES_PROMPT = """
-# Negotiation Setup
+Negotiation Setup.
 
-You are about to participate in a negotiation. Here is the setup:
-
-## Mechanism Information
-The Negotiator Mechanism Interface (NMI) provides information about the negotiation:
-- n_steps: Maximum number of negotiation steps (None = unlimited)
-- time_limit: Maximum time in seconds (None = unlimited)
-- n_outcomes: Total number of possible outcomes in the outcome space
-- n_negotiators: Number of participants in this negotiation
-- end_on_no_response: If true, negotiation ends when any negotiator returns None
-- one_offer_per_step: If true, only one negotiator acts per step
-- offering_is_accepting: If true, making an offer implies accepting it if echoed
-
+You are about to participate in a negotiation. The setup is described below.
 {{nmi:text}}
 
-## Outcome Space
-The negotiation outcome space defines possible agreements:
-{{outcome-space:json}}
+The negotiation outcome space defines the possible agreements.
+{{outcome-space:text}}
 
-## Your Utility Function
-A utility function maps outcomes to real numbers representing preference.
-- Higher values = more preferred outcomes
-- reserved_value: The utility of no agreement (your walk-away point)
-- You should aim to get outcomes with utility > reserved_value
+A utility function maps outcomes to real numbers representing your preference.
+
+Higher values mean more preferred outcomes.
+
+reserved_value is the utility of no agreement and represents your walk-away point.
+
+You must never accept an outcome with utility less than reserved_value.
 
 {{utility-function:text}}
-Your reserved value (utility of no agreement): {{reserved-value}}
 
-## Opponent's Utility Function
-{{opponent-utility-function:text}}
+Your reserved value (utility of no agreement) is {{reserved-value}}.
 """
 
 # Prompt sent when preferences change during negotiation
 PREFERENCES_CHANGED_PROMPT = """
-# Preferences Changed
+Preferences Changed.
 
-Your preferences have changed. Change types: {change_types}
-
-## Mechanism Information
-The Negotiator Mechanism Interface (NMI) provides information about the negotiation:
-- n_steps: Maximum number of negotiation steps (None = unlimited)
-- time_limit: Maximum time in seconds (None = unlimited)
-- n_outcomes: Total number of possible outcomes in the outcome space
-- n_negotiators: Number of participants in this negotiation
-- end_on_no_response: If true, negotiation ends when any negotiator returns None
-- one_offer_per_step: If true, only one negotiator acts per step
-- offering_is_accepting: If true, making an offer implies accepting it if echoed
-
-{{nmi:text}}
-
-## Outcome Space
-The negotiation outcome space defines possible agreements:
-{{outcome-space:json}}
-
-## Your Utility Function
-A utility function maps outcomes to real numbers representing preference.
-- Higher values = more preferred outcomes
-- reserved_value: The utility of no agreement (your walk-away point)
-- You should aim to get outcomes with utility > reserved_value
+Your preferences have changed. The change types are {change_types}. Your new utility function is shown below.
 
 {{utility-function:text}}
-Your reserved value (utility of no agreement): {{reserved-value}}
 
-## Opponent's Utility Function
-{{opponent-utility-function:text}}
+Your reserved value (utility of no agreement) is {{reserved-value}}.
 """
 
 # Prompt sent when negotiation starts
 NEGOTIATION_START_PROMPT = """
-# Negotiation Started
+Negotiation Started.
 
-The negotiation has now started. For each round, you will be asked to:
-1. Analyze the current state and any offer received
-2. Decide whether to ACCEPT, REJECT (with counter-offer), or END
-3. Optionally provide persuasive text for the other party
+The negotiation has now started. For each round, you will be asked to analyze the current state and any offer received, decide whether to ACCEPT, REJECT with a counter-offer, or END, and optionally provide persuasive text for the other party.
 
 Respond in this JSON format for each decision:
 ```json
@@ -107,27 +60,18 @@ Respond in this JSON format for each decision:
 }
 ```
 
-Where:
-- "accept": Accept the current offer on the table
-- "reject": Reject and provide a counter-offer in "outcome"
-- "end": End the negotiation without agreement
-- "wait": Wait without making an offer (only if allowed by mechanism)
-- "outcome": Your counter-offer as a list matching issue order, or null
-- "text": A message to send to your opponent (actually delivered to them)
-- "reasoning": Your internal reasoning (optional, not sent to opponent)
+Where accept is to accept the current offer on the table, reject is to reject and provide a counter-offer in outcome, end is to end the negotiation without agreement, and wait is to wait without making an offer (only if allowed by the mechanism). outcome is your counter-offer as a list matching issue order, or null. text is a message that is actually delivered to your opponent. reasoning is your internal reasoning and is not sent to the opponent.
 
-You may occasionally send ONLY text (null outcome) to persuade the
-opponent, but this should be rare and strategic. Include an outcome usually.
+You may occasionally send only text with a null outcome to persuade the opponent, but this should be rare and strategic. Usually include an outcome.
 
-Ready to begin!
+Ready to begin.
 """
 
 # Prompt sent each negotiation round
 ROUND_PROMPT = """
-# Round {step}
+Step is {step}, relative time is {relative_time:.1%}, and running status is {running}.
 
-**Step**: {step} | **Time**: {relative_time:.1%} | **Running**: {running}
-
+The offer information is shown below.
 {offer_info}
 
 What is your decision? Respond with JSON.

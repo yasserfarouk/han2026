@@ -202,8 +202,32 @@ def run(
             rich_help_panel="Output",
         ),
     ] = True,
+    steps: Annotated[
+        int,
+        typer.Option(
+            "--steps",
+            help="Number of allowed negotiation steps. 0 for unlimited",
+            rich_help_panel="Negotiation",
+        ),
+    ] = 0,
+    seconds: Annotated[
+        int,
+        typer.Option(
+            "--seconds",
+            help="Number of allowed negotition seconds. 0 for unlimited",
+            rich_help_panel="Negotiation",
+        ),
+    ] = 300,
 ):
     """Run a single negotiation against an opponent."""
+    # set time-limits
+    if seconds <= 0 and steps <= 0:
+        print(
+            "[red]You must either pass a nonzero time-limit (--time-limit) or a non-zero number of steps (--steps).[/red]"
+        )
+        exit(1)
+    time_limit = None if seconds <= 0 else seconds
+    n_steps = None if steps <= 0 else steps
     # Handle scenario type generation (implies --generate-scenario)
     if scenario_type or generate:
         if scenario_type:
@@ -263,7 +287,9 @@ def run(
             "depending on the LLM inference speed.[/yellow]"
         )
 
-    m = SAOMechanism(n_steps=100, outcome_space=s.outcome_space)
+    m = SAOMechanism(
+        n_steps=n_steps, time_limit=time_limit, outcome_space=s.outcome_space
+    )
 
     # Prepare kwargs for negotiators (if they support verbose)
     negotiator_kwargs = {}
